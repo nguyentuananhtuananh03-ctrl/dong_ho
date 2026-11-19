@@ -26,7 +26,7 @@
       color: var(--text-main);
       display: flex;
       justify-content: center;
-      padding: 20px 12px;
+      padding: 16px 12px 24px;
       min-height: 100vh;
     }
 
@@ -36,7 +36,54 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 20px;
+      gap: 16px;
+    }
+
+    .top-bar {
+      width: 100%;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 8px;
+      min-height: 34px;
+    }
+
+    .top-pill-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid #e5e7eb;
+      background: #ffffff;
+      color: #111827;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      transition: all 0.15s ease;
+    }
+
+    .top-pill-btn:hover {
+      border-color: #d1d5db;
+      background: #f9fafb;
+    }
+
+    .top-pill-btn.logged-in {
+      background: #ecfdf5;
+      border-color: #10b981;
+      color: #065f46;
+    }
+
+    .top-logout-mini {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid #fecaca;
+      background: #fef2f2;
+      color: #991b1b;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
     }
 
     .brand-header {
@@ -44,12 +91,12 @@
       flex-direction: column;
       align-items: center;
       text-align: center;
+      margin-top: -4px;
     }
 
     .brand-title {
       font-size: 24px;
       font-weight: 800;
-      margin-top: 10px;
       color: #111827;
       letter-spacing: -0.5px;
     }
@@ -100,29 +147,6 @@
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
     }
 
-    .user-bar {
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #f9fafb;
-      border: 1px solid #e5e7eb;
-      padding: 10px 14px;
-      border-radius: 12px;
-      font-size: 13.5px;
-    }
-
-    .logout-link {
-      background: #fee2e2;
-      color: #991b1b;
-      border: none;
-      padding: 6px 10px;
-      border-radius: 8px;
-      font-weight: 700;
-      font-size: 12px;
-      cursor: pointer;
-    }
-
     .stock-status {
       width: 100%;
       padding: 12px;
@@ -139,6 +163,12 @@
       border: 1px solid #10b981;
     }
 
+    .stock-locked {
+      background-color: #f3f4f6;
+      color: #374151;
+      border: 1px solid #d1d5db;
+    }
+
     .stock-cooldown {
       background-color: #fef3c7;
       color: #92400e;
@@ -149,6 +179,36 @@
       background-color: #fee2e2;
       color: #991b1b;
       border: 1px solid #ef4444;
+    }
+
+    .password-wrapper {
+      position: relative;
+      width: 100%;
+      display: flex;
+      align-items: center;
+    }
+
+    .password-wrapper .input-box {
+      padding-right: 46px;
+    }
+
+    .eye-btn {
+      position: absolute;
+      right: 12px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+      padding: 4px;
+      color: #6b7280;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .eye-btn:hover {
+      color: #111827;
     }
 
     .input-box {
@@ -179,7 +239,7 @@
 
     .btn:disabled {
       cursor: not-allowed;
-      opacity: 0.75;
+      opacity: 0.65;
     }
 
     .btn:active:not(:disabled) {
@@ -225,12 +285,22 @@
 <body>
 
   <div class="container">
+    <!-- NÚT NHỎ Ở TRÊN CÙNG -->
+    <div class="top-bar">
+      <button type="button" class="top-pill-btn" id="topAuthBtn" onclick="openAuthCard()">
+        👤 Đăng nhập / Đăng ký
+      </button>
+      <button type="button" class="top-logout-mini hidden" id="topLogoutBtn" onclick="logoutUser()">
+        Đăng xuất
+      </button>
+    </div>
+
     <div class="brand-header">
       <h1 class="brand-title">Cloud phonemod <span>⚡</span></h1>
     </div>
 
-    <!-- MÀN HÌNH ĐĂNG NHẬP / TẠO TÀI KHOẢN -->
-    <div class="card" id="authCard">
+    <!-- FORM ĐĂNG NHẬP / TẠO TÀI KHOẢN (MỞ KHI BẤM NÚT NHỎ Ở TRÊN) -->
+    <div class="card hidden" id="authCard">
       <div class="card-title">👤 Tài Khoản Thành Viên</div>
 
       <div class="auth-tabs">
@@ -239,42 +309,46 @@
       </div>
 
       <p id="authHint" style="font-size: 13.5px; color: #666; text-align: center;">
-        Bạn cần đăng nhập bằng tài khoản đã tạo để sử dụng hệ thống.
+        Đăng nhập bằng tài khoản đã tạo hoặc chuyển sang Tạo tài khoản mới.
       </p>
 
       <input type="text" id="authUsername" class="input-box" placeholder="Tên đăng nhập (không dấu, >= 3 ký tự)...">
-      <input type="password" id="authPassword" class="input-box" placeholder="Mật khẩu (>= 4 ký tự)...">
-      <input type="password" id="authConfirmPassword" class="input-box hidden" placeholder="Nhập lại mật khẩu...">
 
-      <button type="button" class="btn btn-green" id="authSubmitBtn" onclick="handleAuthSubmit()">Đăng nhập</button>
-    </div>
-
-    <!-- MÀN HÌNH CHÍNH (SAU KHI ĐĂNG NHẬP) -->
-    <div class="card hidden" id="mainCard">
-      <div class="user-bar">
-        <span>Xin chào, <b id="currentUserLabel">---</b></span>
-        <button type="button" class="logout-link" onclick="logoutUser()">Đăng xuất</button>
+      <div class="password-wrapper">
+        <input type="password" id="authPassword" class="input-box" placeholder="Mật khẩu (>= 4 ký tự)...">
+        <button type="button" class="eye-btn" id="togglePwBtn" aria-label="Hiện hoặc ẩn mật khẩu" onclick="togglePasswordVisibility('authPassword', this)">👁</button>
       </div>
 
+      <div class="password-wrapper hidden" id="confirmPasswordWrapper">
+        <input type="password" id="authConfirmPassword" class="input-box" placeholder="Nhập lại mật khẩu...">
+        <button type="button" class="eye-btn" id="toggleConfirmPwBtn" aria-label="Hiện hoặc ẩn mật khẩu nhập lại" onclick="togglePasswordVisibility('authConfirmPassword', this)">👁</button>
+      </div>
+
+      <button type="button" class="btn btn-green" id="authSubmitBtn" onclick="handleAuthSubmit()">Đăng nhập</button>
+      <button type="button" class="btn" style="background:#e5e7eb; color:#333;" onclick="goBackToMain()">Quay lại</button>
+    </div>
+
+    <!-- MÀN HÌNH CHÍNH -->
+    <div class="card" id="mainCard">
       <div class="card-title">🔑 Xác Thực Key & Kho Tài Khoản</div>
       
-      <div id="stockAlertBox" class="stock-status stock-available">Đang tải trạng thái kho...</div>
+      <div id="stockAlertBox" class="stock-status stock-locked">🔒 Vui lòng đăng nhập hoặc tạo tài khoản ở nút trên để sử dụng.</div>
 
       <p style="font-size: 13.5px; color: #666; text-align: center;">Tối đa 5 tài khoản/ngày, mỗi lần nhận cách nhau 1 tiếng.</p>
       
       <input type="text" id="keyInput" class="input-box" placeholder="Nhập key của bạn vào đây...">
       
-      <button class="btn btn-green" id="verifyBtn" onclick="verifyKey()">Xác nhận Key</button>
+      <button type="button" class="btn btn-green" id="verifyBtn" onclick="verifyKey()">Xác nhận Key</button>
       
-      <button class="btn btn-blue" id="getBtn" onclick="showGetKeyEvent()" style="margin-top: 5px;">Kiếm Key</button>
+      <button type="button" class="btn btn-blue" id="getBtn" onclick="showGetKeyEvent()" style="margin-top: 5px;">Kiếm Key</button>
     </div>
 
     <!-- MÀN HÌNH CHỌN CÁCH KIẾM KEY -->
     <div class="card hidden" id="getMethodCard">
       <div class="card-title">🛠 Chọn Cách Kiếm Key</div>
-      <button class="btn btn-blue" onclick="startMathChallenge()">Cách 1: Giải 17 bài toán</button>
-      <button class="btn btn-green" onclick="startTimeWait()" style="background: linear-gradient(135deg, #f59e0b, #d97706);">Cách 2: Đợi thời gian nhận mã</button>
-      <button class="btn" style="background:#e5e7eb; color:#333;" onclick="goBackToMain()">Quay lại</button>
+      <button type="button" class="btn btn-blue" onclick="startMathChallenge()">Cách 1: Giải 17 bài toán</button>
+      <button type="button" class="btn btn-green" onclick="startTimeWait()" style="background: linear-gradient(135deg, #f59e0b, #d97706);">Cách 2: Đợi thời gian nhận mã</button>
+      <button type="button" class="btn" style="background:#e5e7eb; color:#333;" onclick="goBackToMain()">Quay lại</button>
     </div>
 
     <!-- CÁCH 1: GIẢI 17 BÀI TOÁN -->
@@ -282,7 +356,7 @@
       <div class="card-title">🧮 Giải Toán (<span id="mathProgress">1</span>/17)</div>
       <div class="math-question" id="mathQuestionText">5 + 10 = ?</div>
       <input type="number" id="mathAnswerInput" class="input-box" placeholder="Nhập kết quả...">
-      <button class="btn btn-green" onclick="submitMathAnswer()">Trả lời</button>
+      <button type="button" class="btn btn-green" onclick="submitMathAnswer()">Trả lời</button>
     </div>
 
     <!-- CÁCH 2: ĐỢI 80 GIÂY -->
@@ -294,7 +368,7 @@
         <p style="font-size: 13px; color:#444; margin-bottom: 5px;">Mã code ngẫu nhiên của bạn:</p>
         <div class="key-box" id="randomGeneratedCode">XYZ123</div>
         <input type="text" id="confirmCodeInput" class="input-box" placeholder="Nhập lại mã code trên vào đây...">
-        <button class="btn btn-green" style="margin-top: 10px;" onclick="verifyGeneratedCode()">Tiếp tục nhận Key</button>
+        <button type="button" class="btn btn-green" style="margin-top: 10px;" onclick="verifyGeneratedCode()">Tiếp tục nhận Key</button>
       </div>
     </div>
 
@@ -303,8 +377,8 @@
       <div class="card-title">🎉 Key Của Bạn Hôm Nay</div>
       <p style="font-size: 13px; color: #666; text-align: center;">Sao chép key này để mở khóa:</p>
       <div class="key-box" id="generatedKeyDisplay"></div>
-      <button class="btn btn-green" onclick="copyGeneratedKey()">Sao chép Key ngay</button>
-      <button class="btn" style="background:#e5e7eb; color:#333;" onclick="goBackToMain()">Quay lại trang nhập</button>
+      <button type="button" class="btn btn-green" onclick="copyGeneratedKey()">Sao chép Key ngay</button>
+      <button type="button" class="btn" style="background:#e5e7eb; color:#333;" onclick="goBackToMain()">Quay lại trang nhập</button>
     </div>
 
     <!-- MÀN HÌNH LẤY TÀI KHOẢN -->
@@ -312,8 +386,8 @@
       <div class="card-title">🎉 Thông Tin Tài Khoản</div>
       <p id="sessionLimitHint" style="font-size: 13.5px; color: #666; text-align: center;">Xác thực thành công! Sao chép tài khoản của bạn:</p>
       <div class="key-box" id="accountInfoDisplay">Đang tải tài khoản...</div>
-      <button class="btn btn-green" id="copyAccBtn" onclick="copyAndRemoveAccount()">Sao chép & Nhận tài khoản</button>
-      <button class="btn" style="background:#e5e7eb; color:#333;" onclick="goBackToMain()">Quay lại</button>
+      <button type="button" class="btn btn-green" id="copyAccBtn" onclick="copyAndRemoveAccount()">Sao chép & Nhận tài khoản</button>
+      <button type="button" class="btn" style="background:#e5e7eb; color:#333;" onclick="goBackToMain()">Quay lại</button>
     </div>
 
   </div>
@@ -394,6 +468,31 @@
 
     let authMode = "login";
 
+    function togglePasswordVisibility(inputId, btnEl) {
+      const input = document.getElementById(inputId);
+      if (!input) return;
+      const isHidden = input.type === "password";
+      input.type = isHidden ? "text" : "password";
+      btnEl.innerText = isHidden ? "🙈" : "👁";
+    }
+
+    function resetPasswordInputs() {
+      const pw = document.getElementById("authPassword");
+      const cpw = document.getElementById("authConfirmPassword");
+      const btn1 = document.getElementById("togglePwBtn");
+      const btn2 = document.getElementById("toggleConfirmPwBtn");
+      if (pw) {
+        pw.type = "password";
+        pw.value = "";
+      }
+      if (cpw) {
+        cpw.type = "password";
+        cpw.value = "";
+      }
+      if (btn1) btn1.innerText = "👁";
+      if (btn2) btn2.innerText = "👁";
+    }
+
     function normalizeUsername(rawName) {
       return (rawName || "").trim().replace(/\s+/g, "").toLowerCase();
     }
@@ -418,28 +517,51 @@
       return users[activeUser] ? activeUser : null;
     }
 
+    function updateTopAuthBar() {
+      const activeUser = getActiveUser();
+      const topBtn = document.getElementById("topAuthBtn");
+      const logoutBtn = document.getElementById("topLogoutBtn");
+
+      if (activeUser) {
+        topBtn.classList.add("logged-in");
+        topBtn.innerText = `👤 ${activeUser}`;
+        logoutBtn.classList.remove("hidden");
+      } else {
+        topBtn.classList.remove("logged-in");
+        topBtn.innerText = "👤 Đăng nhập / Đăng ký";
+        logoutBtn.classList.add("hidden");
+      }
+    }
+
+    function openAuthCard() {
+      resetPasswordInputs();
+      document.querySelectorAll(".card").forEach(c => c.classList.add("hidden"));
+      document.getElementById("authCard").classList.remove("hidden");
+    }
+
     function switchAuthMode(mode) {
       authMode = mode;
       const tabLogin = document.getElementById("tabLogin");
       const tabRegister = document.getElementById("tabRegister");
-      const confirmInput = document.getElementById("authConfirmPassword");
+      const confirmWrapper = document.getElementById("confirmPasswordWrapper");
       const submitBtn = document.getElementById("authSubmitBtn");
       const hint = document.getElementById("authHint");
+
+      resetPasswordInputs();
 
       if (mode === "login") {
         tabLogin.classList.add("active");
         tabRegister.classList.remove("active");
-        confirmInput.classList.add("hidden");
+        confirmWrapper.classList.add("hidden");
         submitBtn.innerText = "Đăng nhập";
-        hint.innerText = "Bạn cần đăng nhập bằng tài khoản đã tạo để sử dụng hệ thống.";
+        hint.innerText = "Đăng nhập bằng tài khoản đã tạo để sử dụng kho tài khoản.";
       } else {
         tabRegister.classList.add("active");
         tabLogin.classList.remove("active");
-        confirmInput.classList.remove("hidden");
+        confirmWrapper.classList.remove("hidden");
         submitBtn.innerText = "Tạo tài khoản ngay";
         hint.innerText = "Tạo tài khoản mới (tên không được trùng với tài khoản đã có trên hệ thống).";
       }
-      confirmInput.value = "";
     }
 
     function handleAuthSubmit() {
@@ -470,32 +592,23 @@
         users[username] = { password };
         saveUsers(users);
         localStorage.setItem(SESSION_USER_KEY, username);
-        alert("Tạo tài khoản thành công! Đang vào hệ thống...");
-        enterMainApp(username);
+        alert("Tạo tài khoản thành công! Đã mở khóa hệ thống.");
+        goBackToMain();
       } else {
         if (!users[username] || users[username].password !== password) {
           alert("Sai tên đăng nhập hoặc mật khẩu! Nếu chưa có, hãy bấm 'Tạo tài khoản'.");
           return;
         }
         localStorage.setItem(SESSION_USER_KEY, username);
-        enterMainApp(username);
+        alert("Đăng nhập thành công!");
+        goBackToMain();
       }
-    }
-
-    function enterMainApp(username) {
-      document.getElementById("currentUserLabel").innerText = username;
-      document.querySelectorAll(".card").forEach(c => c.classList.add("hidden"));
-      document.getElementById("mainCard").classList.remove("hidden");
-      checkStockStatus();
     }
 
     function logoutUser() {
       localStorage.removeItem(SESSION_USER_KEY);
-      document.getElementById("authPassword").value = "";
-      document.getElementById("authConfirmPassword").value = "";
-      document.querySelectorAll(".card").forEach(c => c.classList.add("hidden"));
-      document.getElementById("authCard").classList.remove("hidden");
-      switchAuthMode("login");
+      resetPasswordInputs();
+      goBackToMain();
     }
 
     function getStockList() {
@@ -544,12 +657,24 @@
     }
 
     function checkStockStatus() {
-      if (!getActiveUser()) return;
+      updateTopAuthBar();
       const currentStock = getStockList();
       const alertBox = document.getElementById("stockAlertBox");
       const verifyBtn = document.getElementById("verifyBtn");
       const getBtn = document.getElementById("getBtn");
       const keyInput = document.getElementById("keyInput");
+
+      if (!getActiveUser()) {
+        alertBox.className = "stock-status stock-locked";
+        alertBox.innerHTML = `🔒 Bạn cần đăng nhập hoặc tạo tài khoản (nút nhỏ góc trên) mới có thể sử dụng.`;
+        verifyBtn.disabled = true;
+        verifyBtn.style.background = "#9ca3af";
+        getBtn.disabled = true;
+        keyInput.disabled = true;
+        keyInput.placeholder = "Đăng nhập / Tạo tài khoản trước...";
+        return;
+      }
+
       const dailyCount = checkDailyLimit();
       const remainingMs = getRemainingCooldownMs();
 
@@ -595,12 +720,7 @@
     }
 
     window.onload = function() {
-      const activeUser = getActiveUser();
-      if (activeUser) {
-        enterMainApp(activeUser);
-      } else {
-        logoutUser();
-      }
+      goBackToMain();
 
       setInterval(() => {
         if (getActiveUser() && !document.getElementById("mainCard").classList.contains("hidden")) {
@@ -615,7 +735,8 @@
 
     function verifyKey() {
       if (!getActiveUser()) {
-        logoutUser();
+        alert("Vui lòng bấm nút 'Đăng nhập / Đăng ký' nhỏ ở phía trên trước!");
+        openAuthCard();
         return;
       }
       if (checkDailyLimit() >= DAILY_MAX) {
@@ -647,7 +768,12 @@
     }
 
     function showGetKeyEvent() {
-      if (!getActiveUser() || checkDailyLimit() >= DAILY_MAX || getRemainingCooldownMs() > 0) return;
+      if (!getActiveUser()) {
+        alert("Vui lòng bấm nút 'Đăng nhập / Đăng ký' nhỏ ở phía trên trước!");
+        openAuthCard();
+        return;
+      }
+      if (checkDailyLimit() >= DAILY_MAX || getRemainingCooldownMs() > 0) return;
       const currentStock = getStockList();
       if (currentStock.length === 0) return;
       document.getElementById("mainCard").classList.add("hidden");
@@ -655,16 +781,13 @@
     }
 
     function goBackToMain() {
-      if (!getActiveUser()) {
-        logoutUser();
-        return;
-      }
       document.querySelectorAll(".card").forEach(c => c.classList.add("hidden"));
       document.getElementById("mainCard").classList.remove("hidden");
       checkStockStatus();
     }
 
     function startMathChallenge() {
+      if (!getActiveUser()) return openAuthCard();
       document.getElementById("getMethodCard").classList.add("hidden");
       document.getElementById("mathCard").classList.remove("hidden");
       mathCount = 1;
@@ -709,6 +832,7 @@
     }
 
     function startTimeWait() {
+      if (!getActiveUser()) return openAuthCard();
       document.getElementById("getMethodCard").classList.add("hidden");
       document.getElementById("waitCard").classList.remove("hidden");
       document.getElementById("codeResultArea").classList.add("hidden");
@@ -749,7 +873,8 @@
 
     function copyAndRemoveAccount() {
       if (!getActiveUser()) {
-        logoutUser();
+        alert("Vui lòng bấm nút 'Đăng nhập / Đăng ký' nhỏ ở phía trên trước!");
+        openAuthCard();
         return;
       }
 
