@@ -73,6 +73,56 @@
       text-align: center;
     }
 
+    .auth-tabs {
+      display: flex;
+      width: 100%;
+      gap: 8px;
+      background: #f3f4f6;
+      padding: 4px;
+      border-radius: 14px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      background: transparent;
+      color: #4b5563;
+    }
+
+    .tab-btn.active {
+      background: #ffffff;
+      color: #111827;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    }
+
+    .user-bar {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 13.5px;
+    }
+
+    .logout-link {
+      background: #fee2e2;
+      color: #991b1b;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
     .stock-status {
       width: 100%;
       padding: 12px;
@@ -179,8 +229,33 @@
       <h1 class="brand-title">Cloud phonemod <span>⚡</span></h1>
     </div>
 
-    <!-- MÀN HÌNH CHÍNH -->
-    <div class="card" id="mainCard">
+    <!-- MÀN HÌNH ĐĂNG NHẬP / TẠO TÀI KHOẢN -->
+    <div class="card" id="authCard">
+      <div class="card-title">👤 Tài Khoản Thành Viên</div>
+
+      <div class="auth-tabs">
+        <button type="button" class="tab-btn active" id="tabLogin" onclick="switchAuthMode('login')">Đăng nhập</button>
+        <button type="button" class="tab-btn" id="tabRegister" onclick="switchAuthMode('register')">Tạo tài khoản</button>
+      </div>
+
+      <p id="authHint" style="font-size: 13.5px; color: #666; text-align: center;">
+        Bạn cần đăng nhập bằng tài khoản đã tạo để sử dụng hệ thống.
+      </p>
+
+      <input type="text" id="authUsername" class="input-box" placeholder="Tên đăng nhập (không dấu, >= 3 ký tự)...">
+      <input type="password" id="authPassword" class="input-box" placeholder="Mật khẩu (>= 4 ký tự)...">
+      <input type="password" id="authConfirmPassword" class="input-box hidden" placeholder="Nhập lại mật khẩu...">
+
+      <button type="button" class="btn btn-green" id="authSubmitBtn" onclick="handleAuthSubmit()">Đăng nhập</button>
+    </div>
+
+    <!-- MÀN HÌNH CHÍNH (SAU KHI ĐĂNG NHẬP) -->
+    <div class="card hidden" id="mainCard">
+      <div class="user-bar">
+        <span>Xin chào, <b id="currentUserLabel">---</b></span>
+        <button type="button" class="logout-link" onclick="logoutUser()">Đăng xuất</button>
+      </div>
+
       <div class="card-title">🔑 Xác Thực Key & Kho Tài Khoản</div>
       
       <div id="stockAlertBox" class="stock-status stock-available">Đang tải trạng thái kho...</div>
@@ -244,10 +319,11 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "accounts_stock_hourly5_v1";
-    const LAST_CLAIM_KEY = "last_claim_timestamp";
+    const STORAGE_KEY = "accounts_stock_auth_v1";
+    const USERS_KEY = "cloud_phonemod_users_v1";
+    const SESSION_USER_KEY = "cloud_phonemod_logged_in_user";
     const DAILY_MAX = 5;
-    const COOLDOWN_MS = 60 * 60 * 1000; // 1 tiếng (60 phút)
+    const COOLDOWN_MS = 60 * 60 * 1000; // 1 tiếng
 
     const initialAccounts = [
       "Tk: 56ajyysek4@fldubai.com\nMk: Password123!",
@@ -316,6 +392,102 @@
       "Tk: 85ipxgi0dw@fldubai.com\nMk: Password123!"
     ];
 
+    let authMode = "login";
+
+    function getUsers() {
+      return JSON.parse(localStorage.getItem(USERS_KEY) || "{}");
+    }
+
+    function saveUsers(users) {
+      localStorage.setItem(USERS_KEY, JSON.stringify(users));
+    }
+
+    function getActiveUser() {
+      const activeUser = localStorage.getItem(SESSION_USER_KEY);
+      if (!activeUser) return null;
+      const users = getUsers();
+      return users[activeUser] ? activeUser : null;
+    }
+
+    function switchAuthMode(mode) {
+      authMode = mode;
+      const tabLogin = document.getElementById("tabLogin");
+      const tabRegister = document.getElementById("tabRegister");
+      const confirmInput = document.getElementById("authConfirmPassword");
+      const submitBtn = document.getElementById("authSubmitBtn");
+      const hint = document.getElementById("authHint");
+
+      if (mode === "login") {
+        tabLogin.classList.add("active");
+        tabRegister.classList.remove("active");
+        confirmInput.classList.add("hidden");
+        submitBtn.innerText = "Đăng nhập";
+        hint.innerText = "Bạn cần đăng nhập bằng tài khoản đã tạo để sử dụng hệ thống.";
+      } else {
+        tabRegister.classList.add("active");
+        tabLogin.classList.remove("active");
+        confirmInput.classList.remove("hidden");
+        submitBtn.innerText = "Tạo tài khoản ngay";
+        hint.innerText = "Tạo tài khoản mới để mở khóa kho tài khoản và lưu lượt nhận của bạn.";
+      }
+      confirmInput.value = "";
+    }
+
+    function handleAuthSubmit() {
+      const username = document.getElementById("authUsername").value.trim().toLowerCase();
+      const password = document.getElementById("authPassword").value;
+      const confirmPassword = document.getElementById("authConfirmPassword").value;
+      const users = getUsers();
+
+      if (username.length < 3 || /\s/.test(username)) {
+        alert("Tên đăng nhập phải có ít nhất 3 ký tự và không chứa khoảng trắng!");
+        return;
+      }
+      if (password.length < 4) {
+        alert("Mật khẩu phải có ít nhất 4 ký tự!");
+        return;
+      }
+
+      if (authMode === "register") {
+        if (users[username]) {
+          alert("Tên đăng nhập này đã tồn tại, hãy chọn tên khác hoặc đăng nhập!");
+          return;
+        }
+        if (password !== confirmPassword) {
+          alert("Mật khẩu nhập lại không khớp!");
+          return;
+        }
+        users[username] = { password };
+        saveUsers(users);
+        localStorage.setItem(SESSION_USER_KEY, username);
+        alert("Tạo tài khoản thành công! Đang vào hệ thống...");
+        enterMainApp(username);
+      } else {
+        if (!users[username] || users[username].password !== password) {
+          alert("Sai tên đăng nhập hoặc mật khẩu! Nếu chưa có, hãy bấm 'Tạo tài khoản'.");
+          return;
+        }
+        localStorage.setItem(SESSION_USER_KEY, username);
+        enterMainApp(username);
+      }
+    }
+
+    function enterMainApp(username) {
+      document.getElementById("currentUserLabel").innerText = username;
+      document.querySelectorAll(".card").forEach(c => c.classList.add("hidden"));
+      document.getElementById("mainCard").classList.remove("hidden");
+      checkStockStatus();
+    }
+
+    function logoutUser() {
+      localStorage.removeItem(SESSION_USER_KEY);
+      document.getElementById("authPassword").value = "";
+      document.getElementById("authConfirmPassword").value = "";
+      document.querySelectorAll(".card").forEach(c => c.classList.add("hidden"));
+      document.getElementById("authCard").classList.remove("hidden");
+      switchAuthMode("login");
+    }
+
     function getStockList() {
       const storedStock = localStorage.getItem(STORAGE_KEY);
       if (!storedStock) {
@@ -332,18 +504,22 @@
     const dateStr = dd + mm + yyyy;
     const CORRECT_KEY = "TUANANH_" + dateStr + "5550363438";
 
-    function checkDailyLimit() {
-      const lastDate = localStorage.getItem("limit_date");
-      if (lastDate !== dateStr) {
-        localStorage.setItem("limit_date", dateStr);
-        localStorage.setItem("daily_count", "0");
-      }
-      return parseInt(localStorage.getItem("daily_count") || "0");
+    function userKey(suffix) {
+      const u = getActiveUser() || "guest";
+      return `u_${u}_${suffix}`;
     }
 
-    // Trả về số mili-giây còn lại của thời gian chờ 1 tiếng (0 nếu đã có thể nhận)
+    function checkDailyLimit() {
+      const lastDate = localStorage.getItem(userKey("limit_date"));
+      if (lastDate !== dateStr) {
+        localStorage.setItem(userKey("limit_date"), dateStr);
+        localStorage.setItem(userKey("daily_count"), "0");
+      }
+      return parseInt(localStorage.getItem(userKey("daily_count")) || "0", 10);
+    }
+
     function getRemainingCooldownMs() {
-      const lastClaim = parseInt(localStorage.getItem(LAST_CLAIM_KEY) || "0", 10);
+      const lastClaim = parseInt(localStorage.getItem(userKey("last_claim")) || "0", 10);
       if (!lastClaim) return 0;
       const elapsed = Date.now() - lastClaim;
       return elapsed < COOLDOWN_MS ? COOLDOWN_MS - elapsed : 0;
@@ -358,6 +534,7 @@
     }
 
     function checkStockStatus() {
+      if (!getActiveUser()) return;
       const currentStock = getStockList();
       const alertBox = document.getElementById("stockAlertBox");
       const verifyBtn = document.getElementById("verifyBtn");
@@ -368,7 +545,7 @@
 
       if (dailyCount >= DAILY_MAX) {
         alertBox.className = "stock-status stock-empty";
-        alertBox.innerHTML = `⚠️ Bạn đã đạt giới hạn nhận tối đa <b>${DAILY_MAX}/${DAILY_MAX}</b> tài khoản hôm nay.`;
+        alertBox.innerHTML = `⚠️ Tài khoản của bạn đã nhận tối đa <b>${DAILY_MAX}/${DAILY_MAX}</b> tài khoản hôm nay.`;
         verifyBtn.disabled = true;
         verifyBtn.style.background = "#9ca3af";
         getBtn.disabled = true;
@@ -408,9 +585,15 @@
     }
 
     window.onload = function() {
-      checkStockStatus();
+      const activeUser = getActiveUser();
+      if (activeUser) {
+        enterMainApp(activeUser);
+      } else {
+        logoutUser();
+      }
+
       setInterval(() => {
-        if (!document.getElementById("mainCard").classList.contains("hidden")) {
+        if (getActiveUser() && !document.getElementById("mainCard").classList.contains("hidden")) {
           checkStockStatus();
         }
       }, 1000);
@@ -421,17 +604,19 @@
     let currentRandomCode = "";
 
     function verifyKey() {
+      if (!getActiveUser()) {
+        logoutUser();
+        return;
+      }
       if (checkDailyLimit() >= DAILY_MAX) {
         alert(`Bạn đã nhận đủ ${DAILY_MAX} tài khoản trong ngày hôm nay!`);
         return;
       }
-
       const remainingMs = getRemainingCooldownMs();
       if (remainingMs > 0) {
         alert(`Bạn cần đợi thêm ${formatDuration(remainingMs)} (1 tiếng giữa mỗi lần nhận) mới có thể nhận tiếp!`);
         return;
       }
-
       const currentStock = getStockList();
       if (currentStock.length === 0) {
         alert("Kho đã hết tài khoản!");
@@ -452,7 +637,7 @@
     }
 
     function showGetKeyEvent() {
-      if (checkDailyLimit() >= DAILY_MAX || getRemainingCooldownMs() > 0) return;
+      if (!getActiveUser() || checkDailyLimit() >= DAILY_MAX || getRemainingCooldownMs() > 0) return;
       const currentStock = getStockList();
       if (currentStock.length === 0) return;
       document.getElementById("mainCard").classList.add("hidden");
@@ -460,7 +645,11 @@
     }
 
     function goBackToMain() {
-      document.querySelectorAll('.card').forEach(c => c.classList.add("hidden"));
+      if (!getActiveUser()) {
+        logoutUser();
+        return;
+      }
+      document.querySelectorAll(".card").forEach(c => c.classList.add("hidden"));
       document.getElementById("mainCard").classList.remove("hidden");
       checkStockStatus();
     }
@@ -494,7 +683,7 @@
     }
 
     function submitMathAnswer() {
-      const userAns = parseInt(document.getElementById("mathAnswerInput").value);
+      const userAns = parseInt(document.getElementById("mathAnswerInput").value, 10);
       if (userAns === currentAnswer) {
         mathCount++;
         if (mathCount > 17) {
@@ -548,8 +737,12 @@
       document.getElementById("keyInput").value = CORRECT_KEY;
     }
 
-    // Sao chép xong: xóa tài khoản khỏi kho, tăng lượt trong ngày (+1) và khóa nhận tiếp trong 1 tiếng
     function copyAndRemoveAccount() {
+      if (!getActiveUser()) {
+        logoutUser();
+        return;
+      }
+
       let dailyCount = checkDailyLimit();
       if (dailyCount >= DAILY_MAX) {
         alert(`Bạn đã đạt giới hạn ${DAILY_MAX}/${DAILY_MAX} tài khoản hôm nay!`);
@@ -578,8 +771,8 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(currentStock));
 
       dailyCount++;
-      localStorage.setItem("daily_count", dailyCount.toString());
-      localStorage.setItem(LAST_CLAIM_KEY, Date.now().toString());
+      localStorage.setItem(userKey("daily_count"), dailyCount.toString());
+      localStorage.setItem(userKey("last_claim"), Date.now().toString());
 
       alert(`Đã sao chép tài khoản thành công! (${dailyCount}/${DAILY_MAX} lượt hôm nay). Bạn cần đợi 1 tiếng để nhận tài khoản tiếp theo.`);
       goBackToMain();
