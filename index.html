@@ -394,6 +394,10 @@
 
     let authMode = "login";
 
+    function normalizeUsername(rawName) {
+      return (rawName || "").trim().replace(/\s+/g, "").toLowerCase();
+    }
+
     function getUsers() {
       return JSON.parse(localStorage.getItem(USERS_KEY) || "{}");
     }
@@ -402,8 +406,13 @@
       localStorage.setItem(USERS_KEY, JSON.stringify(users));
     }
 
+    function isUsernameTaken(username, users) {
+      const normalized = normalizeUsername(username);
+      return Object.keys(users).some(existing => normalizeUsername(existing) === normalized);
+    }
+
     function getActiveUser() {
-      const activeUser = localStorage.getItem(SESSION_USER_KEY);
+      const activeUser = normalizeUsername(localStorage.getItem(SESSION_USER_KEY));
       if (!activeUser) return null;
       const users = getUsers();
       return users[activeUser] ? activeUser : null;
@@ -428,18 +437,19 @@
         tabLogin.classList.remove("active");
         confirmInput.classList.remove("hidden");
         submitBtn.innerText = "Tạo tài khoản ngay";
-        hint.innerText = "Tạo tài khoản mới để mở khóa kho tài khoản và lưu lượt nhận của bạn.";
+        hint.innerText = "Tạo tài khoản mới (tên không được trùng với tài khoản đã có trên hệ thống).";
       }
       confirmInput.value = "";
     }
 
     function handleAuthSubmit() {
-      const username = document.getElementById("authUsername").value.trim().toLowerCase();
+      const rawUsername = document.getElementById("authUsername").value;
+      const username = normalizeUsername(rawUsername);
       const password = document.getElementById("authPassword").value;
       const confirmPassword = document.getElementById("authConfirmPassword").value;
       const users = getUsers();
 
-      if (username.length < 3 || /\s/.test(username)) {
+      if (username.length < 3 || /\s/.test(rawUsername.trim())) {
         alert("Tên đăng nhập phải có ít nhất 3 ký tự và không chứa khoảng trắng!");
         return;
       }
@@ -449,8 +459,8 @@
       }
 
       if (authMode === "register") {
-        if (users[username]) {
-          alert("Tên đăng nhập này đã tồn tại, hãy chọn tên khác hoặc đăng nhập!");
+        if (isUsernameTaken(username, users)) {
+          alert(`Tên "${username}" đã tồn tại trên hệ thống, không cho phép tạo trùng tên! Vui lòng chọn tên khác.`);
           return;
         }
         if (password !== confirmPassword) {
