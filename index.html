@@ -10,7 +10,8 @@
 
     <style>
         /* =====================================================================
-           STUDIO DESIGN TOKENS (DARK DEFAULT #0D0E11 / LIGHT #F4F2EE)
+           DESIGN TOKENS: DARK (#0D0E11) DEFAULT & LIGHT (#F4F2EE) TOGGLE
+           ACCENT: TERRACOTTA (#D95D39)
            ===================================================================== */
         :root {
             --bg-page: #0D0E11;
@@ -166,7 +167,7 @@
         }
 
         /* =====================================================================
-           INLINE DOCKED "NHẠC VN" PANEL
+           INLINE DOCKED "NHẠC VN" PANEL ABOVE MAIN VIEW
            ===================================================================== */
         #inline-music-panel {
             display: none;
@@ -180,6 +181,34 @@
 
         #inline-music-panel.open {
             display: block;
+        }
+
+        .music-controls-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 10px 14px;
+            border-radius: 14px;
+            border: 1px solid var(--hairline);
+            background-color: var(--bg-control);
+            margin-top: 10px;
+        }
+
+        .volume-slider-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1 1 180px;
+            max-width: 260px;
+        }
+
+        .volume-slider-group input[type="range"] {
+            flex: 1;
+            accent-color: var(--accent);
+            cursor: pointer;
+            height: 6px;
         }
 
         .track-selector-grid {
@@ -230,32 +259,12 @@
             text-overflow: clip;
         }
 
-        #youtube-ho-vuon-minh-box {
-            display: none;
-            margin-top: 8px;
+        .yt-player-card {
+            margin-top: 10px;
             padding: 12px;
             border-radius: 16px;
             border: 1px solid var(--hairline);
             background-color: var(--bg-control);
-        }
-
-        #youtube-ho-vuon-minh-box.active {
-            display: block;
-        }
-
-        #unlinked-track-notice {
-            display: none;
-            margin-top: 8px;
-            padding: 12px 14px;
-            border-radius: 14px;
-            border: 1px solid var(--hairline);
-            background-color: var(--bg-control);
-            font-size: 12px;
-            color: var(--ink-secondary);
-        }
-
-        #unlinked-track-notice.active {
-            display: block;
         }
 
         .yt-embed-frame-wrap {
@@ -278,7 +287,7 @@
         }
 
         /* =====================================================================
-           5-TAB NAVIGATION BAR (SINGLE ROW, HORIZONTALLY SCROLLABLE)
+           SINGLE-ROW 5-TAB NAVIGATION BAR (NEVER WRAPS OR CLIPS)
            ===================================================================== */
         .nav-tabs-bar {
             display: flex;
@@ -292,6 +301,7 @@
             border-radius: 16px;
             background-color: var(--bg-control);
             border: 1px solid var(--hairline);
+            max-width: 100%;
         }
 
         .nav-tabs-bar::-webkit-scrollbar {
@@ -408,7 +418,7 @@
 
     <div class="app-container">
         <!-- ===================================================================
-             1. TOP NAVIGATION HEADER
+             1. TOP HEADER BAR
              =================================================================== -->
         <header style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;">
             <div style="display:flex;align-items:center;gap:11px;min-width:0;">
@@ -421,7 +431,7 @@
 
             <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;">
                 <button id="btn-toggle-music-panel" type="button" class="control-pill" aria-expanded="false" aria-controls="inline-music-panel">
-                    <span id="music-pill-dot" style="width:7px;height:7px;border-radius:999px;background-color:var(--ink-secondary);flex-shrink:0;"></span>
+                    <span id="music-pill-dot" style="width:7px;height:7px;border-radius:999px;background-color:var(--accent);flex-shrink:0;"></span>
                     <span id="music-pill-text">Nhạc VN</span>
                 </button>
 
@@ -436,7 +446,7 @@
         </header>
 
         <!-- ===================================================================
-             2. INLINE DOCKED "NHẠC VN" PANEL (NO SYNTHESIZED AUDIO)
+             2. INLINE DOCKED "NHẠC VN" PANEL ABOVE MAIN VIEW
              =================================================================== -->
         <section id="inline-music-panel" aria-label="Bảng điều khiển Nhạc VN">
             <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;">
@@ -450,35 +460,43 @@
                 </div>
             </div>
 
+            <!-- Play/Pause toggle & Volume slider -->
+            <div class="music-controls-row">
+                <button id="btn-music-play-pause" type="button" class="control-pill btn-terracotta" style="min-height:32px;padding:0 16px;font-size:12px;">
+                    Phát nhạc
+                </button>
+
+                <div class="volume-slider-group">
+                    <label for="music-volume-slider" style="font-size:11px;font-weight:600;color:var(--ink-secondary);white-space:nowrap;">Âm lượng</label>
+                    <input id="music-volume-slider" type="range" min="0" max="100" value="65" aria-label="Âm lượng" />
+                    <span id="music-volume-value" class="font-tabular" style="font-size:11px;font-weight:600;min-width:34px;text-align:right;">65%</span>
+                </div>
+            </div>
+
+            <!-- Four Vietnamese Tracks -->
             <div id="music-tracks-container" class="track-selector-grid"></div>
 
-            <!-- Direct External YouTube Embed & Watch Link for "1. Hò vươn mình" -->
-            <div id="youtube-ho-vuon-minh-box" class="active" aria-label="Trình phát YouTube Hò vươn mình">
+            <!-- YouTube Embed & Direct Watch Link for Active Track -->
+            <div class="yt-player-card" aria-label="Trình phát YouTube Nhạc VN">
                 <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;">
                     <div style="min-width:0;">
-                        <div style="font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--accent);">YOUTUBE · 1. HÒ VƯƠN MÌNH</div>
-                        <div style="font-size:12px;font-weight:600;margin-top:2px;">HÒ VƯƠN MÌNH — Phát trực tiếp qua YouTube</div>
+                        <div style="font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--accent);">YOUTUBE</div>
+                        <div id="yt-active-track-title" style="font-size:13px;font-weight:600;margin-top:2px;">1. Hò vươn mình</div>
                     </div>
-                    <a href="http://www.youtube.com/watch?v=CjQ0De1ZfWk" target="_blank" rel="noopener noreferrer" class="control-pill btn-terracotta" style="min-height:30px;padding:0 12px;font-size:11px;">
+                    <a id="yt-watch-link" href="http://www.youtube.com/watch?v=CjQ0De1ZfWk" target="_blank" rel="noopener noreferrer" class="control-pill btn-terracotta" style="min-height:30px;padding:0 12px;font-size:11px;">
                         Mở trên YouTube ↗
                     </a>
                 </div>
+
                 <div class="yt-embed-frame-wrap">
                     <iframe
-                        id="yt-ho-vuon-minh-iframe"
-                        src="https://www.youtube.com/embed/CjQ0De1ZfWk?rel=0"
-                        data-embed-src="https://www.youtube.com/embed/CjQ0De1ZfWk?rel=0"
-                        title="HÒ VƯƠN MÌNH — YouTube Player"
+                        id="yt-player-iframe"
+                        src="about:blank"
+                        title="Trình phát YouTube Nhạc VN"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                         allowfullscreen
                     ></iframe>
                 </div>
-            </div>
-
-            <!-- Notice when selecting tracks 2, 3, or 4 (no synthesized audio) -->
-            <div id="unlinked-track-notice">
-                <span id="unlinked-track-label" style="font-weight:600;color:var(--ink-primary);"></span>
-                <span> — Đã chọn trong danh sách Nhạc VN (không phát âm thanh tổng hợp; chỉ "1. Hò vươn mình" có liên kết YouTube trực tiếp).</span>
             </div>
         </section>
 
@@ -509,7 +527,7 @@
                 <span id="header-tz-badge" class="font-tabular" style="font-size:11px;color:var(--ink-secondary);padding:0 4px;">UTC+07:00</span>
             </div>
 
-            <!-- Banner when viewing a world city on the main clock -->
+            <!-- Active World City Override Banner -->
             <div id="active-city-override-bar" style="display:none;margin-bottom:18px;padding:10px 14px;border-radius:14px;border:1px solid var(--accent);background-color:var(--accent-soft);align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
                 <div style="font-size:12px;">
                     <span style="color:var(--ink-secondary);">Đang xem:</span>
@@ -541,7 +559,7 @@
                         </div>
                     </div>
 
-                    <!-- Digital Clock & Calendar Readouts -->
+                    <!-- Digital Clock & Vietnamese Solar/Lunar Dates -->
                     <div style="min-width:0;">
                         <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:8px;">
                             <span id="clock-weekday" class="font-serif-display" style="font-style:italic;font-size:24px;font-weight:600;color:var(--accent);">Thứ Năm</span>
@@ -677,7 +695,7 @@
             </section>
 
             <!-- ===============================================================
-                 TAB 3: BẤM GIỜ (STOPWATCH: 00:00:00.00 + LAPS)
+                 TAB 3: BẤM GIỜ (REQUESTANIMATIONFRAME STOPWATCH + LAPS)
                  =============================================================== -->
             <section id="tab-panel-stopwatch" role="tabpanel" aria-labelledby="tab-btn-stopwatch" class="tab-section" style="padding:12px 4px;">
                 <div style="max-width:580px;margin:0 auto;text-align:center;">
@@ -707,7 +725,7 @@
             </section>
 
             <!-- ===============================================================
-                 TAB 4: HẸN GIỜ (COUNTDOWN TIMER + PRESETS)
+                 TAB 4: HẸN GIỜ (REQUESTANIMATIONFRAME COUNTDOWN TIMER)
                  =============================================================== -->
             <section id="tab-panel-timer" role="tabpanel" aria-labelledby="tab-btn-timer" class="tab-section" style="padding:12px 4px;">
                 <div style="max-width:580px;margin:0 auto;text-align:center;">
@@ -757,7 +775,7 @@
             </section>
 
             <!-- ===============================================================
-                 TAB 5: THÔNG TIN (STUDIO INFO & COPY BUTTONS)
+                 TAB 5: THÔNG TIN (ONE-CLICK COPY FOR TIKTOK, DISCORD, SERVER)
                  =============================================================== -->
             <section id="tab-panel-info" role="tabpanel" aria-labelledby="tab-btn-info" class="tab-section" style="padding:10px 4px;">
                 <div style="border-radius:16px;border:1px solid var(--hairline);background-color:var(--bg-control);padding:20px;">
@@ -783,7 +801,7 @@
 
                         <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-radius:12px;border:1px solid var(--hairline);background-color:var(--bg-card);">
                             <div style="font-size:13px;overflow:hidden;text-overflow:ellipsis;">
-                                <span style="color:var(--ink-secondary);">Sever discord:</span>
+                                <span style="color:var(--ink-secondary);">Discord Server:</span>
                                 <a href="https://discord.gg/hGvq4rxFXd" target="_blank" rel="noopener noreferrer" class="font-tabular" style="margin-left:6px;color:var(--accent);font-weight:600;text-decoration:underline;">https://discord.gg/hGvq4rxFXd</a>
                             </div>
                             <button type="button" data-copy-value="https://discord.gg/hGvq4rxFXd" class="studio-copy-btn control-pill" style="min-height:30px;padding:0 12px;font-size:11px;">Sao chép</button>
@@ -801,10 +819,10 @@
             // =========================================================================
             // SAFE STORAGE & TOAST HELPERS
             // =========================================================================
-            const KEY_THEME = 'tuananh_studio_theme_v4';
-            const KEY_PINNED = 'tuananh_studio_pinned_v4';
-            const KEY_CUSTOM = 'tuananh_studio_custom_cities_v4';
-            const KEY_REMOVED = 'tuananh_studio_removed_cities_v4';
+            const KEY_THEME = 'tuananh_studio_theme_v5';
+            const KEY_PINNED = 'tuananh_studio_pinned_v5';
+            const KEY_CUSTOM = 'tuananh_studio_custom_cities_v5';
+            const KEY_REMOVED = 'tuananh_studio_removed_cities_v5';
 
             function readStorage(key, fallback) {
                 try {
@@ -837,7 +855,7 @@
             }
 
             // =========================================================================
-            // THEME & CLOCK FORMAT STATE
+            // THEME & HOUR FORMAT STATE
             // =========================================================================
             let isLightTheme = false;
             let is24HourFormat = true;
@@ -857,48 +875,53 @@
             }
 
             // =========================================================================
-            // INLINE "NHẠC VN" TRACK LIST (ZERO SYNTHESIZED AUDIO; DIRECT YOUTUBE ONLY)
+            // INLINE DOCKED "NHẠC VN" PANEL (4 EXACT TRACKS, ZERO SYNTHESIZED AUDIO)
             // =========================================================================
-            const HO_VUON_MINH_EMBED = 'https://www.youtube.com/embed/CjQ0De1ZfWk?rel=0';
-            const HO_VUON_MINH_WATCH = 'http://www.youtube.com/watch?v=CjQ0De1ZfWk';
-
             const VN_TRACKS = [
                 {
                     id: 'ho_vuon_minh',
                     title: 'Hò vươn mình',
-                    meta: 'YouTube trực tiếp',
-                    hasYoutube: true,
-                    embedUrl: HO_VUON_MINH_EMBED,
-                    watchUrl: HO_VUON_MINH_WATCH
+                    embedUrl: 'https://www.youtube.com/embed/CjQ0De1ZfWk?rel=0',
+                    autoplayUrl: 'https://www.youtube.com/embed/CjQ0De1ZfWk?autoplay=1&rel=0',
+                    watchUrl: 'http://www.youtube.com/watch?v=CjQ0De1ZfWk'
                 },
                 {
                     id: '1_vong_vn',
                     title: '1 vòng VN',
-                    meta: 'Danh sách phát',
-                    hasYoutube: false,
-                    embedUrl: '',
-                    watchUrl: ''
+                    embedUrl: 'https://www.youtube.com/embed/Zv1aeqWPUv8?rel=0',
+                    autoplayUrl: 'https://www.youtube.com/embed/Zv1aeqWPUv8?autoplay=1&rel=0',
+                    watchUrl: 'http://www.youtube.com/watch?v=Zv1aeqWPUv8'
                 },
                 {
                     id: 'kiep_sau_van_la_nguoi_vn',
                     title: 'Kiếp sau vẫn là người VN',
-                    meta: 'Danh sách phát',
-                    hasYoutube: false,
-                    embedUrl: '',
-                    watchUrl: ''
+                    embedUrl: 'https://www.youtube.com/embed/dio9L0FazXI?rel=0',
+                    autoplayUrl: 'https://www.youtube.com/embed/dio9L0FazXI?autoplay=1&rel=0',
+                    watchUrl: 'http://www.youtube.com/watch?v=dio9L0FazXI'
                 },
                 {
                     id: 'con_gi_dep_hon',
                     title: 'Còn gì đẹp hơn',
-                    meta: 'Danh sách phát',
-                    hasYoutube: false,
-                    embedUrl: '',
-                    watchUrl: ''
+                    embedUrl: 'https://www.youtube.com/embed/-nJ0WHEetsQ?rel=0',
+                    autoplayUrl: 'https://www.youtube.com/embed/-nJ0WHEetsQ?autoplay=1&rel=0',
+                    watchUrl: 'http://www.youtube.com/watch?v=-nJ0WHEetsQ'
                 }
             ];
 
             let musicPanelOpen = false;
             let selectedTrackIdx = 0;
+            let isMusicPlaying = false;
+            let musicVolumePct = 65;
+
+            function syncIframeSrc() {
+                const iframe = document.getElementById('yt-player-iframe');
+                if (!iframe) return;
+                const track = VN_TRACKS[selectedTrackIdx] || VN_TRACKS[0];
+                const desired = isMusicPlaying ? track.autoplayUrl : track.embedUrl;
+                if (iframe.getAttribute('src') !== desired) {
+                    iframe.setAttribute('src', desired);
+                }
+            }
 
             function renderMusicPanelUI() {
                 try {
@@ -906,20 +929,36 @@
                     const pillText = document.getElementById('music-pill-text');
                     const pillDot = document.getElementById('music-pill-dot');
                     const statusEl = document.getElementById('music-panel-status');
+                    const playPauseBtn = document.getElementById('btn-music-play-pause');
+                    const volSlider = document.getElementById('music-volume-slider');
+                    const volValue = document.getElementById('music-volume-value');
                     const tracksGrid = document.getElementById('music-tracks-container');
-                    const ytBox = document.getElementById('youtube-ho-vuon-minh-box');
-                    const ytIframe = document.getElementById('yt-ho-vuon-minh-iframe');
-                    const unlinkedBox = document.getElementById('unlinked-track-notice');
-                    const unlinkedLabel = document.getElementById('unlinked-track-label');
+                    const activeTitleEl = document.getElementById('yt-active-track-title');
+                    const watchLinkEl = document.getElementById('yt-watch-link');
 
                     if (pillText) {
                         pillText.textContent = `Nhạc VN · ${selectedTrackIdx + 1}. ${track.title}`;
                     }
                     if (pillDot) {
-                        pillDot.style.backgroundColor = track.hasYoutube ? 'var(--accent)' : 'var(--sage)';
+                        pillDot.style.backgroundColor = isMusicPlaying ? 'var(--sage)' : 'var(--accent)';
                     }
                     if (statusEl) {
-                        statusEl.textContent = `${selectedTrackIdx + 1}. ${track.title}`;
+                        statusEl.textContent = `${selectedTrackIdx + 1}. ${track.title}${isMusicPlaying ? ' · Đang phát' : ' · Tạm dừng'}`;
+                    }
+                    if (playPauseBtn) {
+                        playPauseBtn.textContent = isMusicPlaying ? 'Tạm dừng' : 'Phát nhạc';
+                    }
+                    if (volSlider && Number(volSlider.value) !== musicVolumePct) {
+                        volSlider.value = String(musicVolumePct);
+                    }
+                    if (volValue) {
+                        volValue.textContent = `${musicVolumePct}%`;
+                    }
+                    if (activeTitleEl) {
+                        activeTitleEl.textContent = `${selectedTrackIdx + 1}. ${track.title}`;
+                    }
+                    if (watchLinkEl) {
+                        watchLinkEl.setAttribute('href', track.watchUrl);
                     }
 
                     if (tracksGrid) {
@@ -929,41 +968,22 @@
                                 <button type="button" data-select-track="${idx}" class="track-choice-btn ${active ? 'active' : ''}">
                                     <div style="min-width:0;">
                                         <div class="track-choice-title">${idx + 1}. ${item.title}</div>
-                                        <div style="font-size:11px;color:var(--ink-secondary);margin-top:2px;">${item.meta}</div>
+                                        <div style="font-size:11px;color:var(--ink-secondary);margin-top:2px;">YouTube</div>
                                     </div>
                                     <span class="font-tabular" style="font-size:11px;font-weight:700;color:${active ? 'var(--accent)' : 'var(--ink-secondary)'};flex-shrink:0;">
-                                        ${active ? 'Đang chọn' : 'Chọn'}
+                                        ${active ? (isMusicPlaying ? 'Đang phát' : 'Đã chọn') : 'Chọn'}
                                     </span>
                                 </button>
                             `;
                         }).join('');
                     }
 
-                    if (ytBox && ytIframe) {
-                        if (track.hasYoutube && track.embedUrl) {
-                            ytBox.classList.add('active');
-                            if (ytIframe.getAttribute('src') !== track.embedUrl) {
-                                ytIframe.setAttribute('src', track.embedUrl);
-                            }
-                        } else {
-                            ytBox.classList.remove('active');
-                            if (ytIframe.getAttribute('src') !== 'about:blank') {
-                                ytIframe.setAttribute('src', 'about:blank');
-                            }
-                        }
-                    }
-
-                    if (unlinkedBox) {
-                        unlinkedBox.classList.toggle('active', !track.hasYoutube);
-                        if (unlinkedLabel) {
-                            unlinkedLabel.textContent = `${selectedTrackIdx + 1}. ${track.title}`;
-                        }
-                    }
+                    syncIframeSrc();
                 } catch (_) {}
             }
 
             // =========================================================================
-            // LUNAR CALENDAR & TIMEZONE UTILITIES
+            // VIETNAMESE SOLAR / LUNAR CALENDAR & TIMEZONE HELPERS
             // =========================================================================
             const VI_WEEKDAYS = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
             const CAN_LIST = ['Canh', 'Tân', 'Nhâm', 'Quý', 'Giáp', 'Ất', 'Bính', 'Đinh', 'Mậu', 'Kỷ'];
@@ -2016,7 +2036,7 @@
             }
 
             // =========================================================================
-            // TAB NAVIGATION & EVENT LISTENERS
+            // TAB SWITCHING & EVENT WIRING
             // =========================================================================
             function switchTab(target) {
                 try {
@@ -2038,7 +2058,6 @@
 
             function wireEvents() {
                 try {
-                    // Theme button
                     const themeBtn = document.getElementById('btn-toggle-theme');
                     if (themeBtn) {
                         themeBtn.addEventListener('click', () => {
@@ -2046,7 +2065,6 @@
                         });
                     }
 
-                    // 24H / 12H toggle
                     const hourBtn = document.getElementById('btn-toggle-hour-mode');
                     if (hourBtn) {
                         hourBtn.addEventListener('click', () => {
@@ -2060,10 +2078,11 @@
                         });
                     }
 
-                    // Nhạc VN panel controls
                     const panelEl = document.getElementById('inline-music-panel');
                     const togglePanelBtn = document.getElementById('btn-toggle-music-panel');
                     const closePanelBtn = document.getElementById('btn-music-close-panel');
+                    const playPauseBtn = document.getElementById('btn-music-play-pause');
+                    const volSlider = document.getElementById('music-volume-slider');
                     const tracksGrid = document.getElementById('music-tracks-container');
 
                     if (togglePanelBtn && panelEl) {
@@ -2081,8 +2100,32 @@
                         closePanelBtn.addEventListener('click', () => {
                             try {
                                 musicPanelOpen = false;
+                                isMusicPlaying = false;
                                 panelEl.classList.remove('open');
                                 togglePanelBtn.setAttribute('aria-expanded', 'false');
+                                renderMusicPanelUI();
+                            } catch (_) {}
+                        });
+                    }
+
+                    if (playPauseBtn) {
+                        playPauseBtn.addEventListener('click', () => {
+                            try {
+                                isMusicPlaying = !isMusicPlaying;
+                                renderMusicPanelUI();
+                            } catch (_) {}
+                        });
+                    }
+
+                    if (volSlider) {
+                        volSlider.addEventListener('input', (e) => {
+                            try {
+                                const val = parseInt(e.target.value, 10);
+                                if (!Number.isNaN(val)) {
+                                    musicVolumePct = Math.max(0, Math.min(100, val));
+                                    const volValue = document.getElementById('music-volume-value');
+                                    if (volValue) volValue.textContent = `${musicVolumePct}%`;
+                                }
                             } catch (_) {}
                         });
                     }
@@ -2101,7 +2144,6 @@
                         });
                     }
 
-                    // 5-Tab navigation
                     document.querySelectorAll('.nav-tab-btn').forEach(btn => {
                         btn.addEventListener('click', () => {
                             const target = btn.getAttribute('data-tab-target');
@@ -2119,7 +2161,6 @@
                         retLocalBtn.addEventListener('click', () => setActiveClockCity(null));
                     }
 
-                    // Quick pinned cities strip
                     const quickStrip = document.getElementById('pinned-quick-strip');
                     if (quickStrip) {
                         quickStrip.addEventListener('click', (e) => {
@@ -2132,7 +2173,6 @@
                         });
                     }
 
-                    // World cards interactions
                     const worldGrid = document.getElementById('world-cards-grid');
                     if (worldGrid) {
                         worldGrid.addEventListener('click', (e) => {
@@ -2157,7 +2197,6 @@
                         });
                     }
 
-                    // Add city panel & forms
                     const addPanel = document.getElementById('add-city-panel');
                     const toggleAddBtn = document.getElementById('btn-toggle-add-city');
                     if (toggleAddBtn && addPanel) {
@@ -2237,7 +2276,6 @@
                         });
                     }
 
-                    // World filters
                     const searchInput = document.getElementById('world-search-box');
                     if (searchInput) {
                         searchInput.addEventListener('input', (e) => {
@@ -2283,7 +2321,6 @@
                         });
                     }
 
-                    // Stopwatch buttons
                     const swStartBtn = document.getElementById('btn-sw-start-pause');
                     const swLapBtn = document.getElementById('btn-sw-record-lap');
                     const swResetBtn = document.getElementById('btn-sw-reset-all');
@@ -2291,7 +2328,6 @@
                     if (swLapBtn) swLapBtn.addEventListener('click', () => { try { recordStopwatchLap(); } catch (_) {} });
                     if (swResetBtn) swResetBtn.addEventListener('click', () => { try { resetStopwatch(); } catch (_) {} });
 
-                    // Timer presets & controls
                     document.querySelectorAll('.timer-preset-btn').forEach(btn => {
                         btn.addEventListener('click', () => {
                             try {
@@ -2318,7 +2354,6 @@
                     if (timerStartBtn) timerStartBtn.addEventListener('click', () => { try { toggleTimer(); } catch (_) {} });
                     if (timerResetBtn) timerResetBtn.addEventListener('click', () => { try { setTimerDurationSec(timerTotalSec); } catch (_) {} });
 
-                    // One-click copy buttons in Thông tin
                     document.querySelectorAll('.studio-copy-btn').forEach(btn => {
                         btn.addEventListener('click', () => {
                             try {
@@ -2353,7 +2388,6 @@
                 } catch (_) {}
             }
 
-            // Initialize application
             const savedTheme = readStorage(KEY_THEME, 'dark');
             applyTheme(savedTheme === 'light');
             buildAnalogTicks();
