@@ -680,6 +680,7 @@
       goBackToMain();
     }
 
+    // Kho chung duy nhất cho mọi tài khoản: khi 1 tài khoản lấy xong và xóa thì kho chung giảm đi 1
     function getStockList() {
       const storedStock = localStorage.getItem(STORAGE_KEY);
       if (!storedStock) {
@@ -687,6 +688,10 @@
         return [...initialAccounts];
       }
       return JSON.parse(storedStock);
+    }
+
+    function saveSharedStockList(stockList) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(stockList));
     }
 
     const today = new Date();
@@ -771,7 +776,7 @@
 
       if (remainingMs > 0) {
         alertBox.className = "stock-status stock-cooldown";
-        alertBox.innerHTML = `⏳ Mỗi lần nhận cách nhau 1 tiếng. Vui lòng đợi <b>${formatDuration(remainingMs)}</b> để nhận tiếp (đang chờ 1h không thể đăng xuất).<br><small>Kho còn: <b>${currentStock.length}</b> | Đã nhận hôm nay: <b>${dailyCount}/${DAILY_MAX}</b></small>`;
+        alertBox.innerHTML = `⏳ Mỗi lần nhận cách nhau 1 tiếng. Vui lòng đợi <b>${formatDuration(remainingMs)}</b> để nhận tiếp (đang chờ 1h không thể đăng xuất).<br><small>Kho chung còn: <b>${currentStock.length}</b> | Đã nhận hôm nay: <b>${dailyCount}/${DAILY_MAX}</b></small>`;
         verifyBtn.disabled = true;
         verifyBtn.style.background = "#9ca3af";
         getBtn.disabled = true;
@@ -781,7 +786,7 @@
       }
 
       alertBox.className = "stock-status stock-available";
-      alertBox.innerHTML = `✅ Kho có sẵn: <b>${currentStock.length}</b> | Đã nhận: <b>${dailyCount}/${DAILY_MAX}</b> lượt hôm nay (Sẵn sàng nhận).`;
+      alertBox.innerHTML = `✅ Kho chung có sẵn: <b>${currentStock.length}</b> | Đã nhận: <b>${dailyCount}/${DAILY_MAX}</b> lượt hôm nay (Sẵn sàng nhận).`;
       verifyBtn.disabled = false;
       verifyBtn.style.background = "";
       getBtn.disabled = false;
@@ -973,14 +978,15 @@
       const textToCopy = currentStock[0];
       navigator.clipboard.writeText(textToCopy);
 
+      // Xóa tài khoản đã nhận khỏi kho chung -> giảm 1 cho mọi tài khoản trên hệ thống trình duyệt này
       currentStock.shift();
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(currentStock));
+      saveSharedStockList(currentStock);
 
       dailyCount++;
       localStorage.setItem(userKey("daily_count"), dailyCount.toString());
       localStorage.setItem(userKey("last_claim"), Date.now().toString());
 
-      alert(`Đã sao chép tài khoản thành công! (${dailyCount}/${DAILY_MAX} lượt hôm nay). Bạn cần đợi 1 tiếng để nhận tài khoản tiếp theo.`);
+      alert(`Đã sao chép tài khoản thành công! Kho chung còn ${currentStock.length} tài khoản (${dailyCount}/${DAILY_MAX} lượt hôm nay). Bạn cần đợi 1 tiếng để nhận tiếp.`);
       goBackToMain();
     }
   </script>
