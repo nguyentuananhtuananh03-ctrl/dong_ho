@@ -1,993 +1,2371 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cloud phonemod - Stock System</title>
-  <style>
-    :root {
-      --bg-color: #fcfbf7;
-      --card-bg: #ffffff;
-      --text-main: #333333;
-      --accent-yellow: #f59e0b;
-      --btn-primary: #10b981;
-      --btn-blue: #5865f2;
-    }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TUANANH STUDIO — Precision Time Studio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    }
+    <style>
+        /* =====================================================================
+           STUDIO DESIGN TOKENS (DARK DEFAULT #0D0E11 / LIGHT #F4F2EE)
+           ===================================================================== */
+        :root {
+            --bg-page: #0D0E11;
+            --bg-card: #16181D;
+            --bg-control: #1E2128;
+            --ink-primary: #F2EFE9;
+            --ink-secondary: #9A9FA8;
+            --hairline: rgba(242, 239, 233, 0.11);
+            --accent: #D95D39;
+            --accent-soft: rgba(217, 93, 57, 0.16);
+            --sage: #2E7D5B;
+            --sage-soft: rgba(46, 125, 91, 0.16);
+            --shadow-card: 0 24px 64px -18px rgba(0, 0, 0, 0.72), 0 4px 18px -4px rgba(0, 0, 0, 0.45);
+            --shadow-dial: inset 0 1px 2px rgba(255, 255, 255, 0.06), 0 14px 32px -10px rgba(0, 0, 0, 0.65);
+        }
 
-    body {
-      background-color: var(--bg-color);
-      color: var(--text-main);
-      display: flex;
-      justify-content: center;
-      padding: 16px 12px 24px;
-      min-height: 100vh;
-    }
+        html[data-theme="light"] {
+            --bg-page: #F4F2EE;
+            --bg-card: #FFFFFF;
+            --bg-control: #EAE6DF;
+            --ink-primary: #18181B;
+            --ink-secondary: #686868;
+            --hairline: rgba(24, 24, 27, 0.11);
+            --accent: #D95D39;
+            --accent-soft: rgba(217, 93, 57, 0.12);
+            --sage: #2E7D5B;
+            --sage-soft: rgba(46, 125, 91, 0.12);
+            --shadow-card: 0 20px 54px -16px rgba(24, 24, 27, 0.09), 0 4px 14px -4px rgba(24, 24, 27, 0.04);
+            --shadow-dial: inset 0 2px 4px rgba(255, 255, 255, 0.9), 0 12px 28px -10px rgba(24, 24, 27, 0.1);
+        }
 
-    .container {
-      width: 100%;
-      max-width: 480px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 16px;
-    }
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
 
-    .top-bar {
-      width: 100%;
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
-      gap: 8px;
-      min-height: 34px;
-    }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background-color: var(--bg-page);
+            color: var(--ink-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 16px 14px 48px;
+            overflow-x: hidden;
+            transition: background-color 0.25s ease, color 0.25s ease;
+        }
 
-    .top-pill-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 12px;
-      border-radius: 999px;
-      border: 1px solid #e5e7eb;
-      background: #ffffff;
-      color: #111827;
-      font-size: 12.5px;
-      font-weight: 700;
-      cursor: pointer;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-      transition: all 0.15s ease;
-    }
+        @media (min-width: 640px) {
+            body {
+                padding: 26px 22px 56px;
+            }
+        }
 
-    .top-pill-btn:hover {
-      border-color: #d1d5db;
-      background: #f9fafb;
-    }
+        .font-serif-display {
+            font-family: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+        }
 
-    .top-pill-btn.logged-in {
-      background: #ecfdf5;
-      border-color: #10b981;
-      color: #065f46;
-    }
+        .font-tabular {
+            font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-variant-numeric: tabular-nums;
+            font-feature-settings: "tnum" 1, "zero" 1;
+        }
 
-    .top-logout-mini {
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid #fecaca;
-      background: #fef2f2;
-      color: #991b1b;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-    }
+        .num-slot {
+            display: inline-block;
+            min-width: 2ch;
+            text-align: center;
+            font-variant-numeric: tabular-nums;
+        }
 
-    .top-logout-mini:disabled {
-      background: #f3f4f6;
-      border-color: #d1d5db;
-      color: #9ca3af;
-      cursor: not-allowed;
-    }
+        .app-container {
+            width: 100%;
+            max-width: 1080px;
+            margin: 0 auto;
+        }
 
-    .brand-header {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      margin-top: -4px;
-    }
+        .surface-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--hairline);
+            border-radius: 20px;
+            box-shadow: var(--shadow-card);
+            transition: background-color 0.25s ease, border-color 0.25s ease;
+        }
 
-    .brand-title {
-      font-size: 24px;
-      font-weight: 800;
-      color: #111827;
-      letter-spacing: -0.5px;
-    }
+        .control-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            min-height: 36px;
+            padding: 0 14px;
+            border-radius: 999px;
+            border: 1px solid var(--hairline);
+            background-color: var(--bg-control);
+            color: var(--ink-primary);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            user-select: none;
+            white-space: nowrap;
+            transition: background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+        }
 
-    .card {
-      background: var(--card-bg);
-      border-radius: 24px;
-      padding: 24px 20px;
-      width: 100%;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 16px;
-    }
+        .control-pill:hover:not(:disabled) {
+            border-color: var(--accent);
+        }
 
-    .card-title {
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--accent-yellow);
-      text-align: center;
-    }
+        .control-pill:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
 
-    .auth-tabs {
-      display: flex;
-      width: 100%;
-      gap: 8px;
-      background: #f3f4f6;
-      padding: 4px;
-      border-radius: 14px;
-    }
+        .btn-terracotta {
+            background-color: var(--accent);
+            border-color: var(--accent);
+            color: #FFFFFF;
+            font-weight: 600;
+        }
 
-    .tab-btn {
-      flex: 1;
-      padding: 10px;
-      border: none;
-      border-radius: 10px;
-      font-weight: 700;
-      font-size: 14px;
-      cursor: pointer;
-      background: transparent;
-      color: #4b5563;
-    }
+        .btn-terracotta:hover:not(:disabled) {
+            opacity: 0.92;
+            border-color: var(--accent);
+        }
 
-    .tab-btn.active {
-      background: #ffffff;
-      color: #111827;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
-    }
+        .btn-sage {
+            background-color: var(--sage);
+            border-color: var(--sage);
+            color: #FFFFFF;
+            font-weight: 600;
+        }
 
-    .stock-status {
-      width: 100%;
-      padding: 12px;
-      border-radius: 12px;
-      font-weight: 600;
-      font-size: 14px;
-      text-align: center;
-      line-height: 1.5;
-    }
+        .btn-sage:hover:not(:disabled) {
+            opacity: 0.92;
+            border-color: var(--sage);
+        }
 
-    .stock-available {
-      background-color: #d1fae5;
-      color: #065f46;
-      border: 1px solid #10b981;
-    }
+        .field-input,
+        .field-select {
+            height: 36px;
+            border-radius: 999px;
+            border: 1px solid var(--hairline);
+            background-color: var(--bg-control);
+            color: var(--ink-primary);
+            font-size: 12px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
 
-    .stock-locked {
-      background-color: #f3f4f6;
-      color: #374151;
-      border: 1px solid #d1d5db;
-    }
+        .field-input:focus,
+        .field-select:focus {
+            border-color: var(--accent);
+        }
 
-    .stock-cooldown {
-      background-color: #fef3c7;
-      color: #92400e;
-      border: 1px solid #f59e0b;
-    }
+        /* =====================================================================
+           INLINE DOCKED "NHẠC VN" PANEL
+           ===================================================================== */
+        #inline-music-panel {
+            display: none;
+            margin-bottom: 16px;
+            padding: 16px;
+            border-radius: 20px;
+            border: 1px solid var(--hairline);
+            background-color: var(--bg-card);
+            box-shadow: var(--shadow-card);
+        }
 
-    .stock-empty {
-      background-color: #fee2e2;
-      color: #991b1b;
-      border: 1px solid #ef4444;
-    }
+        #inline-music-panel.open {
+            display: block;
+        }
 
-    .password-wrapper {
-      position: relative;
-      width: 100%;
-      display: flex;
-      align-items: center;
-    }
+        .track-selector-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+            margin: 12px 0;
+        }
 
-    .password-wrapper .input-box {
-      padding-right: 46px;
-    }
+        @media (min-width: 640px) {
+            .track-selector-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
 
-    .eye-btn {
-      position: absolute;
-      right: 12px;
-      background: transparent;
-      border: none;
-      cursor: pointer;
-      font-size: 18px;
-      line-height: 1;
-      padding: 4px;
-      color: #6b7280;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+        .track-choice-btn {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            width: 100%;
+            min-height: 46px;
+            padding: 10px 14px;
+            border-radius: 14px;
+            border: 1px solid var(--hairline);
+            background-color: var(--bg-control);
+            color: var(--ink-primary);
+            cursor: pointer;
+            text-align: left;
+            transition: border-color 0.2s ease, background-color 0.2s ease;
+        }
 
-    .eye-btn:hover {
-      color: #111827;
-    }
+        .track-choice-btn:hover {
+            border-color: var(--accent);
+        }
 
-    .input-box {
-      width: 100%;
-      padding: 12px 16px;
-      border-radius: 14px;
-      border: 2px solid #e5e7eb;
-      font-size: 15px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
+        .track-choice-btn.active {
+            border-color: var(--accent);
+            background-color: var(--accent-soft);
+        }
 
-    .input-box:focus {
-      border-color: var(--accent-yellow);
-    }
+        .track-choice-title {
+            font-size: 13px;
+            font-weight: 600;
+            line-height: 1.35;
+            white-space: normal;
+            overflow: visible;
+            text-overflow: clip;
+        }
 
-    .btn {
-      width: 100%;
-      padding: 14px;
-      border-radius: 14px;
-      border: none;
-      font-weight: 700;
-      font-size: 15px;
-      cursor: pointer;
-      text-align: center;
-      transition: opacity 0.2s;
-    }
+        #youtube-ho-vuon-minh-box {
+            display: none;
+            margin-top: 8px;
+            padding: 12px;
+            border-radius: 16px;
+            border: 1px solid var(--hairline);
+            background-color: var(--bg-control);
+        }
 
-    .btn:disabled {
-      cursor: not-allowed;
-      opacity: 0.65;
-    }
+        #youtube-ho-vuon-minh-box.active {
+            display: block;
+        }
 
-    .btn:active:not(:disabled) {
-      transform: scale(0.98);
-    }
+        #unlinked-track-notice {
+            display: none;
+            margin-top: 8px;
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: 1px solid var(--hairline);
+            background-color: var(--bg-control);
+            font-size: 12px;
+            color: var(--ink-secondary);
+        }
 
-    .btn-green {
-      background: linear-gradient(135deg, #10b981, #059669);
-      color: white;
-      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
-    }
+        #unlinked-track-notice.active {
+            display: block;
+        }
 
-    .btn-blue {
-      background-color: var(--btn-blue);
-      color: white;
-    }
+        .yt-embed-frame-wrap {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--hairline);
+            background-color: #090A0D;
+            margin-top: 10px;
+        }
 
-    .btn-danger {
-      background-color: #ef4444;
-      color: white;
-    }
+        .yt-embed-frame-wrap iframe {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
 
-    .btn-neutral {
-      background-color: #e5e7eb;
-      color: #333333;
-    }
+        /* =====================================================================
+           5-TAB NAVIGATION BAR (SINGLE ROW, HORIZONTALLY SCROLLABLE)
+           ===================================================================== */
+        .nav-tabs-bar {
+            display: flex;
+            flex-wrap: nowrap;
+            align-items: center;
+            gap: 6px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            padding: 6px;
+            border-radius: 16px;
+            background-color: var(--bg-control);
+            border: 1px solid var(--hairline);
+        }
 
-    .confirm-actions {
-      display: flex;
-      width: 100%;
-      gap: 10px;
-    }
+        .nav-tabs-bar::-webkit-scrollbar {
+            display: none;
+        }
 
-    .confirm-actions .btn {
-      flex: 1;
-    }
+        .nav-tab-btn {
+            flex: 0 0 auto;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            min-height: 36px;
+            padding: 0 15px;
+            border-radius: 12px;
+            border: 1px solid transparent;
+            background: transparent;
+            color: var(--ink-secondary);
+            font-size: 13px;
+            font-weight: 500;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
 
-    .hidden {
-      display: none !important;
-    }
+        .nav-tab-btn:hover {
+            color: var(--ink-primary);
+        }
 
-    .key-box {
-      background: #f3f4f6;
-      padding: 12px;
-      border-radius: 10px;
-      font-family: monospace;
-      font-size: 13px;
-      word-break: break-all;
-      width: 100%;
-      text-align: center;
-      margin: 10px 0;
-      white-space: pre-line;
-    }
+        .nav-tab-btn[aria-selected="true"] {
+            background-color: var(--accent);
+            color: #FFFFFF;
+            font-weight: 600;
+        }
 
-    .math-question {
-      font-size: 16px;
-      font-weight: 600;
-      color: #374151;
-      text-align: center;
-    }
-  </style>
+        .tab-section {
+            display: none;
+        }
+
+        .tab-section.active {
+            display: block;
+        }
+
+        /* =====================================================================
+           ANALOG CLOCK FACE
+           ===================================================================== */
+        .analog-face {
+            position: relative;
+            width: 244px;
+            height: 244px;
+            border-radius: 999px;
+            background-color: var(--bg-control);
+            border: 1px solid var(--hairline);
+            box-shadow: var(--shadow-dial);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @media (min-width: 640px) {
+            .analog-face {
+                width: 276px;
+                height: 276px;
+            }
+        }
+
+        .clock-hand {
+            position: absolute;
+            left: 50%;
+            bottom: 50%;
+            transform-origin: 50% 100%;
+            border-radius: 999px;
+        }
+
+        .scrollable-list::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .scrollable-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .scrollable-list::-webkit-scrollbar-thumb {
+            background: rgba(154, 159, 168, 0.3);
+            border-radius: 999px;
+        }
+
+        /* Toast feedback banner */
+        #toast-banner {
+            position: fixed;
+            bottom: 18px;
+            right: 18px;
+            z-index: 999;
+            pointer-events: none;
+            opacity: 0;
+            transform: translateY(8px);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        #toast-banner.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
 </head>
+
 <body>
-
-  <div class="container">
-    <!-- NÚT NHỎ Ở TRÊN CÙNG -->
-    <div class="top-bar">
-      <button type="button" class="top-pill-btn" id="topAuthBtn" onclick="openAuthCard()">
-        👤 Đăng nhập / Đăng ký
-      </button>
-      <button type="button" class="top-logout-mini hidden" id="topLogoutBtn" onclick="requestLogout()">
-        Đăng xuất
-      </button>
+    <!-- Toast Status Banner -->
+    <div id="toast-banner" role="status" aria-live="polite">
+        <div style="display:flex;align-items:center;gap:8px;padding:10px 15px;border-radius:14px;border:1px solid var(--hairline);background-color:var(--bg-card);color:var(--ink-primary);font-size:12px;font-weight:500;box-shadow:var(--shadow-card);">
+            <span style="width:8px;height:8px;border-radius:999px;background-color:var(--accent);flex-shrink:0;"></span>
+            <span id="toast-message">Sẵn sàng</span>
+        </div>
     </div>
 
-    <div class="brand-header">
-      <h1 class="brand-title">Cloud phonemod <span>⚡</span></h1>
+    <div class="app-container">
+        <!-- ===================================================================
+             1. TOP NAVIGATION HEADER
+             =================================================================== -->
+        <header style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;">
+            <div style="display:flex;align-items:center;gap:11px;min-width:0;">
+                <span style="width:10px;height:10px;border-radius:999px;background-color:var(--accent);flex-shrink:0;"></span>
+                <div style="min-width:0;">
+                    <div style="font-weight:700;font-size:15px;letter-spacing:0.14em;text-transform:uppercase;line-height:1.2;">TUANANH STUDIO</div>
+                    <div style="font-size:10px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:var(--ink-secondary);margin-top:2px;">PRECISION TIME STUDIO</div>
+                </div>
+            </div>
+
+            <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;">
+                <button id="btn-toggle-music-panel" type="button" class="control-pill" aria-expanded="false" aria-controls="inline-music-panel">
+                    <span id="music-pill-dot" style="width:7px;height:7px;border-radius:999px;background-color:var(--ink-secondary);flex-shrink:0;"></span>
+                    <span id="music-pill-text">Nhạc VN</span>
+                </button>
+
+                <button id="btn-toggle-hour-mode" type="button" class="control-pill font-tabular">
+                    <span id="hour-mode-label">Hệ 24H</span>
+                </button>
+
+                <button id="btn-toggle-theme" type="button" class="control-pill">
+                    <span id="theme-mode-label">Sáng</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- ===================================================================
+             2. INLINE DOCKED "NHẠC VN" PANEL (NO SYNTHESIZED AUDIO)
+             =================================================================== -->
+        <section id="inline-music-panel" aria-label="Bảng điều khiển Nhạc VN">
+            <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;">
+                <div style="min-width:0;">
+                    <div style="font-size:10px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:var(--accent);">NHẠC VN</div>
+                    <div id="music-panel-status" style="font-size:13px;font-weight:600;margin-top:2px;">1. Hò vươn mình</div>
+                </div>
+
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <button id="btn-music-close-panel" type="button" class="control-pill">Đóng</button>
+                </div>
+            </div>
+
+            <div id="music-tracks-container" class="track-selector-grid"></div>
+
+            <!-- Direct External YouTube Embed & Watch Link for "1. Hò vươn mình" -->
+            <div id="youtube-ho-vuon-minh-box" class="active" aria-label="Trình phát YouTube Hò vươn mình">
+                <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;">
+                    <div style="min-width:0;">
+                        <div style="font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--accent);">YOUTUBE · 1. HÒ VƯƠN MÌNH</div>
+                        <div style="font-size:12px;font-weight:600;margin-top:2px;">HÒ VƯƠN MÌNH — Phát trực tiếp qua YouTube</div>
+                    </div>
+                    <a href="http://www.youtube.com/watch?v=CjQ0De1ZfWk" target="_blank" rel="noopener noreferrer" class="control-pill btn-terracotta" style="min-height:30px;padding:0 12px;font-size:11px;">
+                        Mở trên YouTube ↗
+                    </a>
+                </div>
+                <div class="yt-embed-frame-wrap">
+                    <iframe
+                        id="yt-ho-vuon-minh-iframe"
+                        src="https://www.youtube.com/embed/CjQ0De1ZfWk?rel=0"
+                        data-embed-src="https://www.youtube.com/embed/CjQ0De1ZfWk?rel=0"
+                        title="HÒ VƯƠN MÌNH — YouTube Player"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowfullscreen
+                    ></iframe>
+                </div>
+            </div>
+
+            <!-- Notice when selecting tracks 2, 3, or 4 (no synthesized audio) -->
+            <div id="unlinked-track-notice">
+                <span id="unlinked-track-label" style="font-weight:600;color:var(--ink-primary);"></span>
+                <span> — Đã chọn trong danh sách Nhạc VN (không phát âm thanh tổng hợp; chỉ "1. Hò vươn mình" có liên kết YouTube trực tiếp).</span>
+            </div>
+        </section>
+
+        <!-- ===================================================================
+             3. MAIN WORKSPACE CARD & SINGLE-ROW 5-TAB BAR
+             =================================================================== -->
+        <main class="surface-card" style="padding:16px;">
+            <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:18px;">
+                <div role="tablist" aria-label="Điều hướng chính" class="nav-tabs-bar">
+                    <button id="tab-btn-clock" type="button" role="tab" aria-selected="true" aria-controls="tab-panel-clock" data-tab-target="clock" class="nav-tab-btn">
+                        Đồng hồ
+                    </button>
+                    <button id="tab-btn-world" type="button" role="tab" aria-selected="false" aria-controls="tab-panel-world" data-tab-target="world" class="nav-tab-btn">
+                        <span>Thế giới</span>
+                        <span id="world-tab-count" class="font-tabular" style="font-size:11px;opacity:0.85;">0</span>
+                    </button>
+                    <button id="tab-btn-stopwatch" type="button" role="tab" aria-selected="false" aria-controls="tab-panel-stopwatch" data-tab-target="stopwatch" class="nav-tab-btn">
+                        Bấm giờ
+                    </button>
+                    <button id="tab-btn-timer" type="button" role="tab" aria-selected="false" aria-controls="tab-panel-timer" data-tab-target="timer" class="nav-tab-btn">
+                        Hẹn giờ
+                    </button>
+                    <button id="tab-btn-info" type="button" role="tab" aria-selected="false" aria-controls="tab-panel-info" data-tab-target="info" class="nav-tab-btn">
+                        Thông tin
+                    </button>
+                </div>
+
+                <span id="header-tz-badge" class="font-tabular" style="font-size:11px;color:var(--ink-secondary);padding:0 4px;">UTC+07:00</span>
+            </div>
+
+            <!-- Banner when viewing a world city on the main clock -->
+            <div id="active-city-override-bar" style="display:none;margin-bottom:18px;padding:10px 14px;border-radius:14px;border:1px solid var(--accent);background-color:var(--accent-soft);align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+                <div style="font-size:12px;">
+                    <span style="color:var(--ink-secondary);">Đang xem:</span>
+                    <strong id="override-city-title" style="margin-left:4px;"></strong>
+                    <span id="override-city-meta" class="font-tabular" style="margin-left:6px;color:var(--accent);font-weight:600;"></span>
+                </div>
+                <button id="btn-return-local-time" type="button" class="control-pill btn-terracotta" style="min-height:28px;padding:0 12px;font-size:11px;">
+                    Về giờ địa phương
+                </button>
+            </div>
+
+            <!-- ===============================================================
+                 TAB 1: ĐỒNG HỒ
+                 =============================================================== -->
+            <section id="tab-panel-clock" role="tabpanel" aria-labelledby="tab-btn-clock" class="tab-section active" style="padding:8px 4px 12px;">
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:28px;align-items:center;">
+                    <!-- Analog Clock -->
+                    <div style="display:flex;justify-content:center;">
+                        <div class="analog-face" aria-label="Đồng hồ kim">
+                            <div id="analog-ticks-layer" style="position:absolute;inset:0;"></div>
+                            <div style="position:absolute;top:52px;display:flex;flex-direction:column;align-items:center;pointer-events:none;user-select:none;">
+                                <span style="font-size:9px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;">TUANANH</span>
+                                <span class="font-serif-display" style="font-style:italic;font-size:13px;color:var(--accent);margin-top:-2px;">Studio</span>
+                            </div>
+                            <div id="analog-hour-hand" class="clock-hand" style="width:4px;height:66px;margin-left:-2px;background-color:var(--ink-primary);z-index:10;"></div>
+                            <div id="analog-minute-hand" class="clock-hand" style="width:2.5px;height:94px;margin-left:-1.25px;background-color:var(--ink-primary);opacity:0.86;z-index:20;"></div>
+                            <div id="analog-second-hand" class="clock-hand" style="width:1.5px;height:106px;margin-left:-0.75px;background-color:var(--accent);z-index:30;"></div>
+                            <div style="position:relative;z-index:40;width:12px;height:12px;border-radius:999px;background-color:var(--bg-card);border:2.5px solid var(--accent);"></div>
+                        </div>
+                    </div>
+
+                    <!-- Digital Clock & Calendar Readouts -->
+                    <div style="min-width:0;">
+                        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:8px;">
+                            <span id="clock-weekday" class="font-serif-display" style="font-style:italic;font-size:24px;font-weight:600;color:var(--accent);">Thứ Năm</span>
+                            <span style="color:var(--ink-secondary);">•</span>
+                            <span id="clock-day-percent" class="font-tabular" style="font-size:12px;font-weight:600;color:var(--sage);">0.0% ngày</span>
+                            <span style="color:var(--ink-secondary);">•</span>
+                            <span id="clock-day-of-year" class="font-tabular" style="font-size:12px;color:var(--ink-secondary);">Ngày 1/365</span>
+                        </div>
+
+                        <div style="display:flex;align-items:baseline;gap:10px;user-select:none;">
+                            <div class="font-tabular" style="font-size:clamp(44px,8vw,68px);font-weight:600;line-height:1;letter-spacing:-0.03em;">
+                                <span id="digital-hh" class="num-slot">00</span><span style="color:var(--ink-secondary);margin:0 2px;">:</span><span id="digital-mm" class="num-slot">00</span>
+                            </div>
+                            <div style="display:flex;flex-direction:column;align-items:flex-start;">
+                                <span id="digital-period" class="font-tabular" style="display:none;font-size:11px;font-weight:700;padding:2px 6px;border-radius:6px;background-color:var(--accent-soft);color:var(--accent);margin-bottom:4px;">SA</span>
+                                <span id="digital-ss" class="font-tabular num-slot" style="font-size:22px;font-weight:600;color:var(--accent);">00</span>
+                            </div>
+                        </div>
+
+                        <!-- Progress bar of current day -->
+                        <div style="margin-top:16px;max-width:420px;width:100%;">
+                            <div style="height:5px;width:100%;border-radius:999px;background-color:var(--bg-control);overflow:hidden;">
+                                <div id="clock-day-bar" style="height:100%;width:0%;border-radius:999px;background-color:var(--accent);transition:width 0.3s ease;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Solar Date, Lunar Date & Timezone -->
+                        <div style="margin-top:16px;display:flex;flex-direction:column;gap:4px;">
+                            <p id="clock-solar-date" style="margin:0;font-size:16px;font-weight:600;">Đang tải ngày Dương lịch...</p>
+                            <p id="clock-lunar-date" style="margin:0;font-size:13px;font-weight:500;color:var(--sage);">Âm lịch: Đang tính toán...</p>
+                            <p id="clock-tz-summary" style="margin:2px 0 0;font-size:12px;color:var(--ink-secondary);">Múi giờ hiện tại</p>
+                        </div>
+
+                        <!-- Quick Pinned Cities Strip -->
+                        <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--hairline);">
+                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+                                <span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.12em;color:var(--ink-secondary);">Thành phố đã ghim</span>
+                                <button id="btn-go-world-tab" type="button" style="background:none;border:none;padding:0;font-size:12px;font-weight:600;color:var(--accent);cursor:pointer;">Xem tất cả →</button>
+                            </div>
+                            <div id="pinned-quick-strip" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(135px,1fr));gap:8px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===============================================================
+                 TAB 2: THẾ GIỚI (UTC-12 TO UTC+14)
+                 =============================================================== -->
+            <section id="tab-panel-world" role="tabpanel" aria-labelledby="tab-btn-world" class="tab-section" style="padding:6px 4px 10px;">
+                <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:14px;">
+                    <div>
+                        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                            <h2 class="font-serif-display" style="margin:0;font-size:28px;font-weight:600;">Đồng hồ Thế giới</h2>
+                            <span id="world-visible-badge" class="font-tabular" style="font-size:11px;font-weight:600;padding:2px 10px;border-radius:999px;background-color:var(--accent-soft);color:var(--accent);">0 địa điểm</span>
+                        </div>
+                        <p style="margin:4px 0 0;font-size:12px;color:var(--ink-secondary);">
+                            Múi giờ <span class="font-tabular">UTC-12</span> đến <span class="font-tabular">UTC+14</span>. Bấm thẻ để xem trên đồng hồ chính.
+                        </p>
+                    </div>
+
+                    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;">
+                        <button id="btn-toggle-add-city" type="button" class="control-pill btn-sage">+ Thêm thành phố</button>
+                        <button id="btn-reset-default-cities" type="button" class="control-pill">Đặt lại mặc định</button>
+                    </div>
+                </div>
+
+                <!-- Add City Panel (Preset & Custom) -->
+                <div id="add-city-panel" style="display:none;margin-bottom:14px;padding:14px;border-radius:16px;border:1px solid var(--hairline);background-color:var(--bg-control);">
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:12px;">
+                        <div>
+                            <label for="preset-city-select" style="display:block;font-size:11px;color:var(--ink-secondary);margin-bottom:4px;">Chọn nhanh thành phố có sẵn</label>
+                            <select id="preset-city-select" class="field-select" style="width:100%;padding:0 12px;"></select>
+                        </div>
+                        <div style="display:flex;align-items:flex-end;">
+                            <button id="btn-add-preset-city" type="button" class="control-pill btn-terracotta" style="width:100%;">Thêm thành phố này</button>
+                        </div>
+                    </div>
+
+                    <form id="custom-city-form" style="padding-top:12px;border-top:1px solid var(--hairline);display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end;">
+                        <div>
+                            <label for="new-city-name" style="display:block;font-size:11px;color:var(--ink-secondary);margin-bottom:4px;">Tên thành phố</label>
+                            <input id="new-city-name" type="text" required placeholder="VD: Đà Lạt" class="field-input" style="width:100%;padding:0 12px;" />
+                        </div>
+                        <div>
+                            <label for="new-city-country" style="display:block;font-size:11px;color:var(--ink-secondary);margin-bottom:4px;">Quốc gia</label>
+                            <input id="new-city-country" type="text" required placeholder="VD: Việt Nam" class="field-input" style="width:100%;padding:0 12px;" />
+                        </div>
+                        <div>
+                            <label for="new-city-offset" style="display:block;font-size:11px;color:var(--ink-secondary);margin-bottom:4px;">Múi giờ UTC (-12 đến +14)</label>
+                            <input id="new-city-offset" type="number" step="0.25" min="-12" max="14" required value="7" class="field-input font-tabular" style="width:100%;padding:0 12px;" />
+                        </div>
+                        <div>
+                            <label for="new-city-region" style="display:block;font-size:11px;color:var(--ink-secondary);margin-bottom:4px;">Khu vực</label>
+                            <select id="new-city-region" class="field-select" style="width:100%;padding:0 12px;">
+                                <option value="asia">Châu Á - TBD</option>
+                                <option value="europe">Châu Âu</option>
+                                <option value="americas">Châu Mỹ</option>
+                                <option value="mena_africa">Trung Đông &amp; Phi</option>
+                            </select>
+                        </div>
+                        <div>
+                            <button type="submit" class="control-pill btn-sage" style="width:100%;">Lưu địa điểm</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Search & Filters -->
+                <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;">
+                    <input id="world-search-box" type="search" placeholder="Tìm tên thành phố, quốc gia, UTC..." class="field-input" style="flex:1 1 220px;max-width:340px;padding:0 14px;" />
+
+                    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;">
+                        <button type="button" data-region-filter="all" class="region-filter-btn control-pill btn-terracotta" style="min-height:32px;padding:0 12px;font-size:11px;">Tất cả</button>
+                        <button type="button" data-region-filter="asia" class="region-filter-btn control-pill" style="min-height:32px;padding:0 12px;font-size:11px;">Châu Á - TBD</button>
+                        <button type="button" data-region-filter="europe" class="region-filter-btn control-pill" style="min-height:32px;padding:0 12px;font-size:11px;">Châu Âu</button>
+                        <button type="button" data-region-filter="americas" class="region-filter-btn control-pill" style="min-height:32px;padding:0 12px;font-size:11px;">Châu Mỹ</button>
+                        <button type="button" data-region-filter="mena_africa" class="region-filter-btn control-pill" style="min-height:32px;padding:0 12px;font-size:11px;">Trung Đông &amp; Phi</button>
+
+                        <select id="world-tod-filter" class="field-select" aria-label="Lọc theo Ban ngày / Ban đêm" style="height:32px;padding:0 10px;font-size:11px;">
+                            <option value="all">Tất cả</option>
+                            <option value="day">Ban ngày</option>
+                            <option value="night">Ban đêm</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- World Cards Grid -->
+                <div id="world-cards-grid" class="scrollable-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:12px;max-height:540px;overflow-y:auto;padding-right:4px;"></div>
+
+                <div id="world-no-results" style="display:none;text-align:center;padding:36px 12px;">
+                    <p style="margin:0 0 10px;font-size:13px;color:var(--ink-secondary);">Không tìm thấy thành phố phù hợp.</p>
+                    <button id="btn-clear-world-filters" type="button" class="control-pill btn-terracotta">Xóa bộ lọc</button>
+                </div>
+            </section>
+
+            <!-- ===============================================================
+                 TAB 3: BẤM GIỜ (STOPWATCH: 00:00:00.00 + LAPS)
+                 =============================================================== -->
+            <section id="tab-panel-stopwatch" role="tabpanel" aria-labelledby="tab-btn-stopwatch" class="tab-section" style="padding:12px 4px;">
+                <div style="max-width:580px;margin:0 auto;text-align:center;">
+                    <div style="font-size:11px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:var(--accent);">BẤM GIỜ</div>
+
+                    <div style="margin:14px 0 18px;padding:22px 14px;border-radius:18px;border:1px solid var(--hairline);background-color:var(--bg-control);">
+                        <div class="font-tabular" style="display:inline-flex;align-items:baseline;justify-content:center;font-size:clamp(34px,6.8vw,54px);font-weight:600;line-height:1.1;">
+                            <span id="sw-readout-hr" class="num-slot">00</span><span>:</span><span id="sw-readout-min" class="num-slot">00</span><span>:</span><span id="sw-readout-sec" class="num-slot">00</span><span style="font-size:0.65em;color:var(--accent);">.<span id="sw-readout-cs" class="num-slot">00</span></span>
+                        </div>
+                    </div>
+
+                    <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px;margin-bottom:20px;">
+                        <button id="btn-sw-start-pause" type="button" class="control-pill btn-terracotta" style="min-height:38px;padding:0 22px;">Bắt đầu</button>
+                        <button id="btn-sw-record-lap" type="button" class="control-pill" style="min-height:38px;padding:0 18px;" disabled>Vòng</button>
+                        <button id="btn-sw-reset-all" type="button" class="control-pill" style="min-height:38px;padding:0 18px;">Đặt lại</button>
+                    </div>
+
+                    <div id="sw-laps-box" style="display:none;text-align:left;border-radius:14px;border:1px solid var(--hairline);overflow:hidden;">
+                        <div style="display:grid;grid-template-columns:1.2fr 1fr 1fr;padding:9px 14px;font-size:11px;font-weight:700;text-transform:uppercase;color:var(--ink-secondary);background-color:var(--bg-control);">
+                            <span>Vòng</span>
+                            <span style="text-align:center;">Tách vòng</span>
+                            <span style="text-align:right;">Tổng</span>
+                        </div>
+                        <div id="sw-laps-rows" class="scrollable-list" style="max-height:220px;overflow-y:auto;"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===============================================================
+                 TAB 4: HẸN GIỜ (COUNTDOWN TIMER + PRESETS)
+                 =============================================================== -->
+            <section id="tab-panel-timer" role="tabpanel" aria-labelledby="tab-btn-timer" class="tab-section" style="padding:12px 4px;">
+                <div style="max-width:580px;margin:0 auto;text-align:center;">
+                    <div style="font-size:11px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:var(--accent);">HẸN GIỜ</div>
+
+                    <!-- Quick Presets: 1p, 5p, 10p, 15p, 25p, 45p -->
+                    <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;margin:12px 0 18px;">
+                        <button type="button" data-timer-sec="60" class="timer-preset-btn control-pill" style="min-height:32px;padding:0 12px;font-size:11px;">1p</button>
+                        <button type="button" data-timer-sec="300" class="timer-preset-btn control-pill" style="min-height:32px;padding:0 12px;font-size:11px;">5p</button>
+                        <button type="button" data-timer-sec="600" class="timer-preset-btn control-pill" style="min-height:32px;padding:0 12px;font-size:11px;">10p</button>
+                        <button type="button" data-timer-sec="900" class="timer-preset-btn control-pill" style="min-height:32px;padding:0 12px;font-size:11px;">15p</button>
+                        <button type="button" data-timer-sec="1500" class="timer-preset-btn control-pill btn-terracotta" style="min-height:32px;padding:0 12px;font-size:11px;">25p</button>
+                        <button type="button" data-timer-sec="2700" class="timer-preset-btn control-pill" style="min-height:32px;padding:0 12px;font-size:11px;">45p</button>
+                    </div>
+
+                    <!-- Ring & Countdown Display -->
+                    <div style="position:relative;width:210px;height:210px;margin:0 auto 18px;display:flex;align-items:center;justify-content:center;">
+                        <svg style="width:100%;height:100%;transform:rotate(-90deg);" viewBox="0 0 210 210">
+                            <circle cx="105" cy="105" r="92" fill="none" stroke="currentColor" stroke-width="5" style="opacity:0.14;" />
+                            <circle id="timer-progress-ring" cx="105" cy="105" r="92" fill="none" stroke="#D95D39" stroke-width="6" stroke-linecap="round" stroke-dasharray="578.05" stroke-dashoffset="0" />
+                        </svg>
+                        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px;">
+                            <div id="timer-countdown-text" class="font-tabular" style="font-size:30px;font-weight:700;min-width:5ch;text-align:center;">25:00</div>
+                            <span id="timer-state-label" style="font-size:12px;color:var(--ink-secondary);margin-top:4px;">Sẵn sàng</span>
+                        </div>
+                    </div>
+
+                    <!-- Hours / Minutes / Seconds Inputs -->
+                    <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;margin-bottom:16px;">
+                        <input id="input-timer-hr" type="number" min="0" max="99" value="0" aria-label="Giờ" class="field-input font-tabular" style="width:62px;text-align:center;padding:0 6px;" />
+                        <span style="font-size:12px;color:var(--ink-secondary);">Giờ</span>
+
+                        <input id="input-timer-min" type="number" min="0" max="999" value="25" aria-label="Phút" class="field-input font-tabular" style="width:70px;text-align:center;padding:0 6px;" />
+                        <span style="font-size:12px;color:var(--ink-secondary);">Phút</span>
+
+                        <input id="input-timer-sec" type="number" min="0" max="59" value="0" aria-label="Giây" class="field-input font-tabular" style="width:62px;text-align:center;padding:0 6px;" />
+                        <span style="font-size:12px;color:var(--ink-secondary);">Giây</span>
+
+                        <button id="btn-apply-timer-inputs" type="button" class="control-pill">Cài đặt</button>
+                    </div>
+
+                    <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px;">
+                        <button id="btn-timer-start-pause" type="button" class="control-pill btn-sage" style="min-height:38px;padding:0 22px;">Bắt đầu</button>
+                        <button id="btn-timer-reset" type="button" class="control-pill" style="min-height:38px;padding:0 18px;">Đặt lại</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===============================================================
+                 TAB 5: THÔNG TIN (STUDIO INFO & COPY BUTTONS)
+                 =============================================================== -->
+            <section id="tab-panel-info" role="tabpanel" aria-labelledby="tab-btn-info" class="tab-section" style="padding:10px 4px;">
+                <div style="border-radius:16px;border:1px solid var(--hairline);background-color:var(--bg-control);padding:20px;">
+                    <div style="font-size:11px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:var(--accent);">THÔNG TIN</div>
+                    <h2 class="font-serif-display" style="margin:4px 0 14px;font-size:26px;font-weight:600;">TUANANH STUDIO</h2>
+
+                    <div style="display:flex;flex-direction:column;gap:10px;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-radius:12px;border:1px solid var(--hairline);background-color:var(--bg-card);">
+                            <div style="font-size:13px;overflow:hidden;text-overflow:ellipsis;">
+                                <span style="color:var(--ink-secondary);">TikTok:</span>
+                                <strong class="font-tabular" style="margin-left:6px;">tunanhnguyn2122</strong>
+                            </div>
+                            <button type="button" data-copy-value="tunanhnguyn2122" class="studio-copy-btn control-pill" style="min-height:30px;padding:0 12px;font-size:11px;">Sao chép</button>
+                        </div>
+
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-radius:12px;border:1px solid var(--hairline);background-color:var(--bg-card);">
+                            <div style="font-size:13px;overflow:hidden;text-overflow:ellipsis;">
+                                <span style="color:var(--ink-secondary);">Discord:</span>
+                                <strong class="font-tabular" style="margin-left:6px;">tuananh064283</strong>
+                            </div>
+                            <button type="button" data-copy-value="tuananh064283" class="studio-copy-btn control-pill" style="min-height:30px;padding:0 12px;font-size:11px;">Sao chép</button>
+                        </div>
+
+                        <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-radius:12px;border:1px solid var(--hairline);background-color:var(--bg-card);">
+                            <div style="font-size:13px;overflow:hidden;text-overflow:ellipsis;">
+                                <span style="color:var(--ink-secondary);">Sever discord:</span>
+                                <a href="https://discord.gg/hGvq4rxFXd" target="_blank" rel="noopener noreferrer" class="font-tabular" style="margin-left:6px;color:var(--accent);font-weight:600;text-decoration:underline;">https://discord.gg/hGvq4rxFXd</a>
+                            </div>
+                            <button type="button" data-copy-value="https://discord.gg/hGvq4rxFXd" class="studio-copy-btn control-pill" style="min-height:30px;padding:0 12px;font-size:11px;">Sao chép</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
     </div>
 
-    <!-- HỘP XÁC NHẬN ĐĂNG XUẤT -->
-    <div class="card hidden" id="logoutConfirmCard">
-      <div class="card-title">⚠️ Xác Nhận Đăng Xuất</div>
-      <p style="font-size: 15px; font-weight: 600; color: #1f2937; text-align: center;">
-        bạn thật sự muốn đăng xuất?
-      </p>
-      <div class="confirm-actions">
-        <button type="button" class="btn btn-danger" onclick="confirmLogout()">đúng</button>
-        <button type="button" class="btn btn-neutral" onclick="goBackToMain()">không</button>
-      </div>
-    </div>
-
-    <!-- FORM ĐĂNG NHẬP / TẠO TÀI KHOẢN -->
-    <div class="card hidden" id="authCard">
-      <div class="card-title">👤 Tài Khoản Thành Viên</div>
-
-      <div class="auth-tabs">
-        <button type="button" class="tab-btn active" id="tabLogin" onclick="switchAuthMode('login')">Đăng nhập</button>
-        <button type="button" class="tab-btn" id="tabRegister" onclick="switchAuthMode('register')">Tạo tài khoản</button>
-      </div>
-
-      <p id="authHint" style="font-size: 13.5px; color: #666; text-align: center;">
-        Đăng nhập bằng tài khoản đã tạo hoặc chuyển sang Tạo tài khoản mới.
-      </p>
-
-      <input type="text" id="authUsername" class="input-box" placeholder="Tên đăng nhập (không dấu, >= 3 ký tự)...">
-
-      <div class="password-wrapper">
-        <input type="password" id="authPassword" class="input-box" placeholder="Mật khẩu (>= 4 ký tự)...">
-        <button type="button" class="eye-btn" id="togglePwBtn" aria-label="Hiện hoặc ẩn mật khẩu" onclick="togglePasswordVisibility('authPassword', this)">👁</button>
-      </div>
-
-      <div class="password-wrapper hidden" id="confirmPasswordWrapper">
-        <input type="password" id="authConfirmPassword" class="input-box" placeholder="Nhập lại mật khẩu...">
-        <button type="button" class="eye-btn" id="toggleConfirmPwBtn" aria-label="Hiện hoặc ẩn mật khẩu nhập lại" onclick="togglePasswordVisibility('authConfirmPassword', this)">👁</button>
-      </div>
-
-      <button type="button" class="btn btn-green" id="authSubmitBtn" onclick="handleAuthSubmit()">Đăng nhập</button>
-      <button type="button" class="btn btn-neutral" onclick="goBackToMain()">Quay lại</button>
-    </div>
-
-    <!-- MÀN HÌNH CHÍNH -->
-    <div class="card" id="mainCard">
-      <div class="card-title">🔑 Xác Thực Key & Kho Tài Khoản</div>
-      
-      <div id="stockAlertBox" class="stock-status stock-locked">🔒 Vui lòng đăng nhập hoặc tạo tài khoản ở nút trên để sử dụng.</div>
-
-      <p style="font-size: 13.5px; color: #666; text-align: center;">Tối đa 5 tài khoản/ngày, mỗi lần nhận cách nhau 1 tiếng.</p>
-      
-      <input type="text" id="keyInput" class="input-box" placeholder="Nhập key của bạn vào đây...">
-      
-      <button type="button" class="btn btn-green" id="verifyBtn" onclick="verifyKey()">Xác nhận Key</button>
-      
-      <button type="button" class="btn btn-blue" id="getBtn" onclick="showGetKeyEvent()" style="margin-top: 5px;">Kiếm Key</button>
-    </div>
-
-    <!-- MÀN HÌNH CHỌN CÁCH KIẾM KEY -->
-    <div class="card hidden" id="getMethodCard">
-      <div class="card-title">🛠 Chọn Cách Kiếm Key</div>
-      <button type="button" class="btn btn-blue" onclick="startMathChallenge()">Cách 1: Giải 17 bài toán</button>
-      <button type="button" class="btn btn-green" onclick="startTimeWait()" style="background: linear-gradient(135deg, #f59e0b, #d97706);">Cách 2: Đợi thời gian nhận mã</button>
-      <button type="button" class="btn btn-neutral" onclick="goBackToMain()">Quay lại</button>
-    </div>
-
-    <!-- CÁCH 1: GIẢI 17 BÀI TOÁN -->
-    <div class="card hidden" id="mathCard">
-      <div class="card-title">🧮 Giải Toán (<span id="mathProgress">1</span>/17)</div>
-      <div class="math-question" id="mathQuestionText">5 + 10 = ?</div>
-      <input type="number" id="mathAnswerInput" class="input-box" placeholder="Nhập kết quả...">
-      <button type="button" class="btn btn-green" onclick="submitMathAnswer()">Trả lời</button>
-    </div>
-
-    <!-- CÁCH 2: ĐỢI 80 GIÂY -->
-    <div class="card hidden" id="waitCard">
-      <div class="card-title">⏳ Đang tải mã xác thực</div>
-      <p style="font-size: 14px; color: #666; text-align: center;">Vui lòng đợi <span id="countdownTimer" style="font-weight:bold; color:#f59e0b;">80</span> giây...</p>
-      
-      <div id="codeResultArea" class="hidden" style="width: 100%;">
-        <p style="font-size: 13px; color:#444; margin-bottom: 5px;">Mã code ngẫu nhiên của bạn:</p>
-        <div class="key-box" id="randomGeneratedCode">XYZ123</div>
-        <input type="text" id="confirmCodeInput" class="input-box" placeholder="Nhập lại mã code trên vào đây...">
-        <button type="button" class="btn btn-green" style="margin-top: 10px;" onclick="verifyGeneratedCode()">Tiếp tục nhận Key</button>
-      </div>
-    </div>
-
-    <!-- HIỂN THỊ KEY ĐÃ TẠO -->
-    <div class="card hidden" id="showKeyCard">
-      <div class="card-title">🎉 Key Của Bạn Hôm Nay</div>
-      <p style="font-size: 13px; color: #666; text-align: center;">Sao chép key này để mở khóa:</p>
-      <div class="key-box" id="generatedKeyDisplay"></div>
-      <button type="button" class="btn btn-green" onclick="copyGeneratedKey()">Sao chép Key ngay</button>
-      <button type="button" class="btn btn-neutral" onclick="goBackToMain()">Quay lại trang nhập</button>
-    </div>
-
-    <!-- MÀN HÌNH LẤY TÀI KHOẢN -->
-    <div class="card hidden" id="accountCard">
-      <div class="card-title">🎉 Thông Tin Tài Khoản</div>
-      <p id="sessionLimitHint" style="font-size: 13.5px; color: #666; text-align: center;">Xác thực thành công! Sao chép tài khoản của bạn:</p>
-      <div class="key-box" id="accountInfoDisplay">Đang tải tài khoản...</div>
-      <button type="button" class="btn btn-green" id="copyAccBtn" onclick="copyAndRemoveAccount()">Sao chép & Nhận tài khoản</button>
-      <button type="button" class="btn btn-neutral" onclick="goBackToMain()">Quay lại</button>
-    </div>
-
-  </div>
-
-  <script>
-    const STORAGE_KEY = "accounts_stock_auth_v1";
-    const USERS_KEY = "cloud_phonemod_users_v1";
-    const SESSION_USER_KEY = "cloud_phonemod_logged_in_user";
-    const DAILY_MAX = 5;
-    const COOLDOWN_MS = 60 * 60 * 1000; // 1 tiếng
-
-    const initialAccounts = [
-      "Tk: vf2rqon1f1@fldubai.com\nMk: Password123!",
-      "Tk: t8turvl1lt@fldubai.com\nMk: Password123!",
-      "Tk: mnbhfvc5a@inboxkitten.com\nMk: 087658",
-      "Tk: 82k4d7t0@inboxkitten.com\nMk: 087658",
-      "Tk: ub5d2zu7@inboxkitten.com\nMk: 087658",
-      "Tk: rkqufyxy@inboxkitten.com\nMk: 087658",
-      "Tk: m16y0tmf@inboxkitten.com\nMk: 087658",
-      "Tk: 8qytdm0e01@fldubai.com\nMk: Password123!",
-      "Tk: iddxbk7ji8@fldubai.com\nMk: Password123!",
-      "Tk: bybfg0pwcn@fldubai.com\nMk: Password123!",
-      "Tk: 9cvlkpk708@fldubai.com\nMk: Password123!",
-      "Tk: 6t4gj7f2mk@fldubai.com\nMk: Password123!",
-      "Tk: 65czwpq732@fldubai.com\nMk: Password123!",
-      "Tk: nasela839n@fldubai.com\nMk: Password123!",
-      "Tk: l05l0hq5xv@fldubai.com\nMk: Password123!",
-      "Tk: 1k38b8pv4n@fldubai.com\nMk: Password123!",
-      "Tk: vjb2as9b7x@fldubai.com\nMk: Password123!",
-      "Tk: 22tgvck2xw@fldubai.com\nMk: Password123!",
-      "Tk: 315q9hbfdl@fldubai.com\nMk: Password123!",
-      "Tk: yeu21yysiv@fldubai.com\nMk: Password123!",
-      "Tk: rgpkdfkrto@fldubai.com\nMk: Password123!",
-      "Tk: p3wqtuubgj@fldubai.com\nMk: Password123!",
-      "Tk: ddtzcu7hknik@fldubai.com\nMk: 082652",
-      "Tk: no6ps5fxdbzm@fldubai.com\nMk: 082652",
-      "Tk: q2kxyr8xvsr4@fldubai.com\nMk: 082652",
-      "Tk: xs39eo16@inboxkitten.com\nMk: 087658",
-      "Tk: 80kb5h0h@inboxkitten.com\nMk: 087658",
-      "Tk: 1bn2ex9iyd@fldubai.com\nMk: Password123!",
-      "Tk: 0xasy64op6@fldubai.com\nMk: Password123!",
-      "Tk: 8wyi794w8r@fldubai.com\nMk: Password123!",
-      "Tk: 4etny69818@fldubai.com\nMk: Password123!",
-      "Tk: shkq3dcp0t@fldubai.com\nMk: Password123!",
-      "Tk: nk8psrm1od@fldubai.com\nMk: Password123!",
-      "Tk: 5oqmfvrtv0@fldubai.com\nMk: Password123!",
-      "Tk: kdxnemcaaw@fldubai.com\nMk: Password123!",
-      "Tk: bnne25cmc2@fldubai.com\nMk: Password123!",
-      "Tk: 3wmjaz85zk@fldubai.com\nMk: Password123!",
-      "Tk: 76iga8aef5@fldubai.com\nMk: Password123!",
-      "Tk: pbndnsa0pu@fldubai.com\nMk: Password123!",
-      "Tk: xrxsrw8u5e@fldubai.com\nMk: Password123!",
-      "Tk: x80113ooq4@fldubai.com\nMk: Password123!",
-      "Tk: u72g6s6v91@fldubai.com\nMk: Password123!",
-      "Tk: 8xptgwnjnr@fldubai.com\nMk: Password123!",
-      "Tk: zlcv4s5unf@fldubai.com\nMk: Password123!",
-      "Tk: d21ivrinjo@fldubai.com\nMk: Password123!",
-      "Tk: 5cf11e6usc@fldubai.com\nMk: Password123!",
-      "Tk: dde8fdijk8@fldubai.com\nMk: Password123!",
-      "Tk: yc3uif8jd7@fldubai.com\nMk: Password123!",
-      "Tk: mus8x7h2vz@fldubai.com\nMk: Password123!",
-      "Tk: gah4h63vsy@fldubai.com\nMk: Password123!",
-      "Tk: ijlbdoe6p8@fldubai.com\nMk: Password123!",
-      "Tk: ru80jt1nnl@fldubai.com\nMk: Password123!",
-      "Tk: g09vla54du@fldubai.com\nMk: Password123!",
-      "Tk: kl6aco95tf@fldubai.com\nMk: Password123!",
-      "Tk: 9jejyb98zc@fldubai.com\nMk: Password123!",
-      "Tk: 3l2894sw57@fldubai.com\nMk: Password123!",
-      "Tk: a37ln5rgew@fldubai.com\nMk: Password123!",
-      "Tk: l9n4thpg7x@fldubai.com\nMk: Password123!",
-      "Tk: shiairqjdl@fldubai.com\nMk: Password123!",
-      "Tk: 7j1s79hdxb@fldubai.com\nMk: Password123!",
-      "Tk: t4r29xdr3d@fldubai.com\nMk: Password123!",
-      "Tk: khiguu0ut6@fldubai.com\nMk: Password123!",
-      "Tk: 85ipxgi0dw@fldubai.com\nMk: Password123!"
-    ];
-
-    let authMode = "login";
-
-    function togglePasswordVisibility(inputId, btnEl) {
-      const input = document.getElementById(inputId);
-      if (!input) return;
-      const isHidden = input.type === "password";
-      input.type = isHidden ? "text" : "password";
-      btnEl.innerText = isHidden ? "🙈" : "👁";
-    }
-
-    function resetPasswordInputs() {
-      const pw = document.getElementById("authPassword");
-      const cpw = document.getElementById("authConfirmPassword");
-      const btn1 = document.getElementById("togglePwBtn");
-      const btn2 = document.getElementById("toggleConfirmPwBtn");
-      if (pw) {
-        pw.type = "password";
-        pw.value = "";
-      }
-      if (cpw) {
-        cpw.type = "password";
-        cpw.value = "";
-      }
-      if (btn1) btn1.innerText = "👁";
-      if (btn2) btn2.innerText = "👁";
-    }
-
-    function normalizeUsername(rawName) {
-      return (rawName || "").trim().replace(/\s+/g, "").toLowerCase();
-    }
-
-    function getUsers() {
-      return JSON.parse(localStorage.getItem(USERS_KEY) || "{}");
-    }
-
-    function saveUsers(users) {
-      localStorage.setItem(USERS_KEY, JSON.stringify(users));
-    }
-
-    function isUsernameTaken(username, users) {
-      const normalized = normalizeUsername(username);
-      return Object.keys(users).some(existing => normalizeUsername(existing) === normalized);
-    }
-
-    function getActiveUser() {
-      const activeUser = normalizeUsername(localStorage.getItem(SESSION_USER_KEY));
-      if (!activeUser) return null;
-      const users = getUsers();
-      return users[activeUser] ? activeUser : null;
-    }
-
-    function updateTopAuthBar() {
-      const activeUser = getActiveUser();
-      const topBtn = document.getElementById("topAuthBtn");
-      const logoutBtn = document.getElementById("topLogoutBtn");
-
-      if (activeUser) {
-        const remainingMs = getRemainingCooldownMs();
-        topBtn.classList.add("logged-in");
-        topBtn.innerText = `👤 ${activeUser}`;
-        topBtn.title = "Bấm để mở Đăng nhập / Tạo tài khoản";
-        logoutBtn.classList.remove("hidden");
-        logoutBtn.disabled = remainingMs > 0;
-        logoutBtn.title = remainingMs > 0
-          ? `Đang chờ 1 tiếng (${formatDuration(remainingMs)}) — không thể đăng xuất`
-          : "Đăng xuất";
-      } else {
-        topBtn.classList.remove("logged-in");
-        topBtn.innerText = "👤 Đăng nhập / Đăng ký";
-        topBtn.title = "Đăng nhập hoặc tạo tài khoản";
-        logoutBtn.classList.add("hidden");
-        logoutBtn.disabled = false;
-      }
-    }
-
-    function openAuthCard() {
-      const remainingMs = getRemainingCooldownMs();
-      if (remainingMs > 0) {
-        alert(`Đang trong thời gian chờ 1 tiếng (còn ${formatDuration(remainingMs)}), không thể chuyển/tạo tài khoản lúc này!`);
-        return;
-      }
-      resetPasswordInputs();
-      document.querySelectorAll(".card").forEach(c => c.classList.add("hidden"));
-      document.getElementById("authCard").classList.remove("hidden");
-    }
-
-    function switchAuthMode(mode) {
-      authMode = mode;
-      const tabLogin = document.getElementById("tabLogin");
-      const tabRegister = document.getElementById("tabRegister");
-      const confirmWrapper = document.getElementById("confirmPasswordWrapper");
-      const submitBtn = document.getElementById("authSubmitBtn");
-      const hint = document.getElementById("authHint");
-
-      resetPasswordInputs();
-
-      if (mode === "login") {
-        tabLogin.classList.add("active");
-        tabRegister.classList.remove("active");
-        confirmWrapper.classList.add("hidden");
-        submitBtn.innerText = "Đăng nhập";
-        hint.innerText = "Đăng nhập bằng tài khoản đã tạo để sử dụng kho tài khoản.";
-      } else {
-        tabRegister.classList.add("active");
-        tabLogin.classList.remove("active");
-        confirmWrapper.classList.remove("hidden");
-        submitBtn.innerText = "Tạo tài khoản ngay";
-        hint.innerText = "Tạo tài khoản mới (tên không được trùng với tài khoản đã có trên hệ thống).";
-      }
-    }
-
-    function handleAuthSubmit() {
-      const rawUsername = document.getElementById("authUsername").value;
-      const username = normalizeUsername(rawUsername);
-      const password = document.getElementById("authPassword").value;
-      const confirmPassword = document.getElementById("authConfirmPassword").value;
-      const users = getUsers();
-
-      if (username.length < 3 || /\s/.test(rawUsername.trim())) {
-        alert("Tên đăng nhập phải có ít nhất 3 ký tự và không chứa khoảng trắng!");
-        return;
-      }
-      if (password.length < 4) {
-        alert("Mật khẩu phải có ít nhất 4 ký tự!");
-        return;
-      }
-
-      if (authMode === "register") {
-        if (isUsernameTaken(username, users)) {
-          alert(`Tên "${username}" đã tồn tại trên hệ thống, không cho phép tạo trùng tên! Vui lòng chọn tên khác.`);
-          return;
-        }
-        if (password !== confirmPassword) {
-          alert("Mật khẩu nhập lại không khớp!");
-          return;
-        }
-        users[username] = { password };
-        saveUsers(users);
-        localStorage.setItem(SESSION_USER_KEY, username);
-        alert("Tạo tài khoản thành công! Đã mở khóa hệ thống.");
-        goBackToMain();
-      } else {
-        if (!users[username] || users[username].password !== password) {
-          alert("Sai tên đăng nhập hoặc mật khẩu! Nếu chưa có, hãy bấm 'Tạo tài khoản'.");
-          return;
-        }
-        localStorage.setItem(SESSION_USER_KEY, username);
-        alert("Đăng nhập thành công!");
-        goBackToMain();
-      }
-    }
-
-    function requestLogout() {
-      if (!getActiveUser()) return;
-      const remainingMs = getRemainingCooldownMs();
-      if (remainingMs > 0) {
-        alert(`Đang trong thời gian chờ 1 tiếng (còn ${formatDuration(remainingMs)}), không thể đăng xuất lúc này!`);
-        return;
-      }
-      document.querySelectorAll(".card").forEach(c => c.classList.add("hidden"));
-      document.getElementById("logoutConfirmCard").classList.remove("hidden");
-    }
-
-    function confirmLogout() {
-      const remainingMs = getRemainingCooldownMs();
-      if (remainingMs > 0) {
-        alert(`Đang trong thời gian chờ 1 tiếng (còn ${formatDuration(remainingMs)}), không thể đăng xuất lúc này!`);
-        goBackToMain();
-        return;
-      }
-      localStorage.removeItem(SESSION_USER_KEY);
-      resetPasswordInputs();
-      goBackToMain();
-    }
-
-    // Kho chung duy nhất cho mọi tài khoản: khi 1 tài khoản lấy xong và xóa thì kho chung giảm đi 1
-    function getStockList() {
-      const storedStock = localStorage.getItem(STORAGE_KEY);
-      if (!storedStock) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(initialAccounts));
-        return [...initialAccounts];
-      }
-      return JSON.parse(storedStock);
-    }
-
-    function saveSharedStockList(stockList) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(stockList));
-    }
-
-    const today = new Date();
-    const dd = String(today.getDate()).padStart(2, '0');
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const yyyy = today.getFullYear();
-    const dateStr = dd + mm + yyyy;
-    const CORRECT_KEY = "TUANANH_" + dateStr + "5550363438";
-
-    function userKey(suffix) {
-      const u = getActiveUser() || "guest";
-      return `u_${u}_${suffix}`;
-    }
-
-    function checkDailyLimit() {
-      const lastDate = localStorage.getItem(userKey("limit_date"));
-      if (lastDate !== dateStr) {
-        localStorage.setItem(userKey("limit_date"), dateStr);
-        localStorage.setItem(userKey("daily_count"), "0");
-      }
-      return parseInt(localStorage.getItem(userKey("daily_count")) || "0", 10);
-    }
-
-    function getRemainingCooldownMs() {
-      if (!getActiveUser()) return 0;
-      const lastClaim = parseInt(localStorage.getItem(userKey("last_claim")) || "0", 10);
-      if (!lastClaim) return 0;
-      const elapsed = Date.now() - lastClaim;
-      return elapsed < COOLDOWN_MS ? COOLDOWN_MS - elapsed : 0;
-    }
-
-    function formatDuration(ms) {
-      const totalSeconds = Math.ceil(ms / 1000);
-      const hours = Math.floor(totalSeconds / 3600);
-      const minutes = Math.floor((totalSeconds % 3600) / 60);
-      const seconds = totalSeconds % 60;
-      return [hours, minutes, seconds].map(v => String(v).padStart(2, '0')).join(":");
-    }
-
-    function checkStockStatus() {
-      updateTopAuthBar();
-      const currentStock = getStockList();
-      const alertBox = document.getElementById("stockAlertBox");
-      const verifyBtn = document.getElementById("verifyBtn");
-      const getBtn = document.getElementById("getBtn");
-      const keyInput = document.getElementById("keyInput");
-
-      if (!getActiveUser()) {
-        alertBox.className = "stock-status stock-locked";
-        alertBox.innerHTML = `🔒 Bạn cần đăng nhập hoặc tạo tài khoản (nút nhỏ góc trên) mới có thể sử dụng.`;
-        verifyBtn.disabled = true;
-        verifyBtn.style.background = "#9ca3af";
-        getBtn.disabled = true;
-        keyInput.disabled = true;
-        keyInput.placeholder = "Đăng nhập / Tạo tài khoản trước...";
-        return;
-      }
-
-      const dailyCount = checkDailyLimit();
-      const remainingMs = getRemainingCooldownMs();
-
-      if (dailyCount >= DAILY_MAX) {
-        alertBox.className = "stock-status stock-empty";
-        alertBox.innerHTML = `⚠️ Tài khoản của bạn đã nhận tối đa <b>${DAILY_MAX}/${DAILY_MAX}</b> tài khoản hôm nay.`;
-        verifyBtn.disabled = true;
-        verifyBtn.style.background = "#9ca3af";
-        getBtn.disabled = true;
-        keyInput.disabled = true;
-        keyInput.placeholder = "Đã hết lượt nhận hôm nay...";
-        return;
-      }
-
-      if (currentStock.length === 0) {
-        alertBox.className = "stock-status stock-empty";
-        alertBox.innerHTML = "❌ Kho hiện đã hết tài khoản!";
-        verifyBtn.disabled = true;
-        verifyBtn.style.background = "#9ca3af";
-        getBtn.disabled = true;
-        keyInput.disabled = true;
-        return;
-      }
-
-      if (remainingMs > 0) {
-        alertBox.className = "stock-status stock-cooldown";
-        alertBox.innerHTML = `⏳ Mỗi lần nhận cách nhau 1 tiếng. Vui lòng đợi <b>${formatDuration(remainingMs)}</b> để nhận tiếp (đang chờ 1h không thể đăng xuất).<br><small>Kho chung còn: <b>${currentStock.length}</b> | Đã nhận hôm nay: <b>${dailyCount}/${DAILY_MAX}</b></small>`;
-        verifyBtn.disabled = true;
-        verifyBtn.style.background = "#9ca3af";
-        getBtn.disabled = true;
-        keyInput.disabled = true;
-        keyInput.placeholder = "Đang trong thời gian chờ 1 tiếng...";
-        return;
-      }
-
-      alertBox.className = "stock-status stock-available";
-      alertBox.innerHTML = `✅ Kho chung có sẵn: <b>${currentStock.length}</b> | Đã nhận: <b>${dailyCount}/${DAILY_MAX}</b> lượt hôm nay (Sẵn sàng nhận).`;
-      verifyBtn.disabled = false;
-      verifyBtn.style.background = "";
-      getBtn.disabled = false;
-      keyInput.disabled = false;
-      keyInput.placeholder = "Nhập key của bạn vào đây...";
-    }
-
-    window.onload = function() {
-      goBackToMain();
-
-      setInterval(() => {
-        updateTopAuthBar();
-        if (getActiveUser() && !document.getElementById("mainCard").classList.contains("hidden")) {
-          checkStockStatus();
-        }
-      }, 1000);
-    };
-
-    let mathCount = 1;
-    let currentAnswer = 0;
-    let currentRandomCode = "";
-
-    function verifyKey() {
-      if (!getActiveUser()) {
-        alert("Vui lòng bấm nút 'Đăng nhập / Đăng ký' nhỏ ở phía trên trước!");
-        openAuthCard();
-        return;
-      }
-      if (checkDailyLimit() >= DAILY_MAX) {
-        alert(`Bạn đã nhận đủ ${DAILY_MAX} tài khoản trong ngày hôm nay!`);
-        return;
-      }
-      const remainingMs = getRemainingCooldownMs();
-      if (remainingMs > 0) {
-        alert(`Bạn cần đợi thêm ${formatDuration(remainingMs)} (1 tiếng giữa mỗi lần nhận) mới có thể nhận tiếp!`);
-        return;
-      }
-      const currentStock = getStockList();
-      if (currentStock.length === 0) {
-        alert("Kho đã hết tài khoản!");
-        return;
-      }
-
-      const inputVal = document.getElementById("keyInput").value.trim();
-      if (inputVal === CORRECT_KEY) {
-        const dailyCount = checkDailyLimit();
-        document.getElementById("sessionLimitHint").innerText =
-          `Xác thực thành công! Đã nhận ${dailyCount}/${DAILY_MAX} lượt hôm nay — bấm nút để nhận tài khoản:`;
-        document.getElementById("accountInfoDisplay").innerText = currentStock[0];
-        document.getElementById("mainCard").classList.add("hidden");
-        document.getElementById("accountCard").classList.remove("hidden");
-      } else {
-        alert("Key không chính xác! Vui lòng kiểm tra lại hoặc bấm 'Kiếm Key'.");
-      }
-    }
-
-    function showGetKeyEvent() {
-      if (!getActiveUser()) {
-        alert("Vui lòng bấm nút 'Đăng nhập / Đăng ký' nhỏ ở phía trên trước!");
-        openAuthCard();
-        return;
-      }
-      if (checkDailyLimit() >= DAILY_MAX || getRemainingCooldownMs() > 0) return;
-      const currentStock = getStockList();
-      if (currentStock.length === 0) return;
-      document.getElementById("mainCard").classList.add("hidden");
-      document.getElementById("getMethodCard").classList.remove("hidden");
-    }
-
-    function goBackToMain() {
-      document.querySelectorAll(".card").forEach(c => c.classList.add("hidden"));
-      document.getElementById("mainCard").classList.remove("hidden");
-      checkStockStatus();
-    }
-
-    function startMathChallenge() {
-      if (!getActiveUser()) return openAuthCard();
-      document.getElementById("getMethodCard").classList.add("hidden");
-      document.getElementById("mathCard").classList.remove("hidden");
-      mathCount = 1;
-      generateNewMath();
-    }
-
-    function generateNewMath() {
-      document.getElementById("mathProgress").innerText = mathCount;
-      const num1 = Math.floor(Math.random() * 100) + 1;
-      const num2 = Math.floor(Math.random() * 100) + 1;
-      const isPlus = Math.random() > 0.5;
-      
-      if (isPlus) {
-        currentAnswer = num1 + num2;
-        document.getElementById("mathQuestionText").innerText = `${num1} + ${num2} = ?`;
-      } else {
-        if (num1 >= num2) {
-          currentAnswer = num1 - num2;
-          document.getElementById("mathQuestionText").innerText = `${num1} - ${num2} = ?`;
-        } else {
-          currentAnswer = num2 - num1;
-          document.getElementById("mathQuestionText").innerText = `${num2} - ${num1} = ?`;
-        }
-      }
-      document.getElementById("mathAnswerInput").value = "";
-    }
-
-    function submitMathAnswer() {
-      const userAns = parseInt(document.getElementById("mathAnswerInput").value, 10);
-      if (userAns === currentAnswer) {
-        mathCount++;
-        if (mathCount > 17) {
-          document.getElementById("mathCard").classList.add("hidden");
-          document.getElementById("showKeyCard").classList.remove("hidden");
-          document.getElementById("generatedKeyDisplay").innerText = CORRECT_KEY;
-        } else {
-          generateNewMath();
-        }
-      } else {
-        alert("Kết quả chưa đúng, hãy tính lại nhé!");
-      }
-    }
-
-    function startTimeWait() {
-      if (!getActiveUser()) return openAuthCard();
-      document.getElementById("getMethodCard").classList.add("hidden");
-      document.getElementById("waitCard").classList.remove("hidden");
-      document.getElementById("codeResultArea").classList.add("hidden");
-      
-      let timeLeft = 80;
-      const timerSpan = document.getElementById("countdownTimer");
-      timerSpan.innerText = timeLeft;
-
-      const countdownInterval = setInterval(() => {
-        timeLeft--;
-        timerSpan.innerText = timeLeft;
-        if (timeLeft <= 0) {
-          clearInterval(countdownInterval);
-          currentRandomCode = "CODE_" + Math.random().toString(36).substring(2, 8).toUpperCase();
-          document.getElementById("randomGeneratedCode").innerText = currentRandomCode;
-          document.getElementById("codeResultArea").classList.remove("hidden");
-        }
-      }, 1000);
-    }
-
-    function verifyGeneratedCode() {
-      const userCode = document.getElementById("confirmCodeInput").value.trim();
-      if (userCode === currentRandomCode) {
-        document.getElementById("waitCard").classList.add("hidden");
-        document.getElementById("showKeyCard").classList.remove("hidden");
-        document.getElementById("generatedKeyDisplay").innerText = CORRECT_KEY;
-      } else {
-        alert("Mã code nhập vào không khớp, vui lòng kiểm tra lại!");
-      }
-    }
-
-    function copyGeneratedKey() {
-      navigator.clipboard.writeText(CORRECT_KEY);
-      alert("Đã sao chép Key thành công! Hãy dán vào ô nhập key.");
-      goBackToMain();
-      document.getElementById("keyInput").value = CORRECT_KEY;
-    }
-
-    function copyAndRemoveAccount() {
-      if (!getActiveUser()) {
-        alert("Vui lòng bấm nút 'Đăng nhập / Đăng ký' nhỏ ở phía trên trước!");
-        openAuthCard();
-        return;
-      }
-
-      let dailyCount = checkDailyLimit();
-      if (dailyCount >= DAILY_MAX) {
-        alert(`Bạn đã đạt giới hạn ${DAILY_MAX}/${DAILY_MAX} tài khoản hôm nay!`);
-        goBackToMain();
-        return;
-      }
-
-      const remainingMs = getRemainingCooldownMs();
-      if (remainingMs > 0) {
-        alert(`Vui lòng đợi thêm ${formatDuration(remainingMs)} mới được nhận tiếp!`);
-        goBackToMain();
-        return;
-      }
-
-      let currentStock = getStockList();
-      if (currentStock.length === 0) {
-        alert("Kho đã hết tài khoản!");
-        goBackToMain();
-        return;
-      }
-
-      const textToCopy = currentStock[0];
-      navigator.clipboard.writeText(textToCopy);
-
-      // Xóa tài khoản đã nhận khỏi kho chung -> giảm 1 cho mọi tài khoản trên hệ thống trình duyệt này
-      currentStock.shift();
-      saveSharedStockList(currentStock);
-
-      dailyCount++;
-      localStorage.setItem(userKey("daily_count"), dailyCount.toString());
-      localStorage.setItem(userKey("last_claim"), Date.now().toString());
-
-      alert(`Đã sao chép tài khoản thành công! Kho chung còn ${currentStock.length} tài khoản (${dailyCount}/${DAILY_MAX} lượt hôm nay). Bạn cần đợi 1 tiếng để nhận tiếp.`);
-      goBackToMain();
-    }
-  </script>
+    <script>
+        (function () {
+            'use strict';
+
+            // =========================================================================
+            // SAFE STORAGE & TOAST HELPERS
+            // =========================================================================
+            const KEY_THEME = 'tuananh_studio_theme_v4';
+            const KEY_PINNED = 'tuananh_studio_pinned_v4';
+            const KEY_CUSTOM = 'tuananh_studio_custom_cities_v4';
+            const KEY_REMOVED = 'tuananh_studio_removed_cities_v4';
+
+            function readStorage(key, fallback) {
+                try {
+                    const raw = window.localStorage.getItem(key);
+                    return raw === null ? fallback : JSON.parse(raw);
+                } catch (_) {
+                    return fallback;
+                }
+            }
+
+            function writeStorage(key, val) {
+                try {
+                    window.localStorage.setItem(key, JSON.stringify(val));
+                } catch (_) {}
+            }
+
+            let toastTimer = null;
+            function notify(msg) {
+                try {
+                    const banner = document.getElementById('toast-banner');
+                    const textEl = document.getElementById('toast-message');
+                    if (!banner || !textEl) return;
+                    textEl.textContent = msg;
+                    banner.classList.add('visible');
+                    if (toastTimer !== null) window.clearTimeout(toastTimer);
+                    toastTimer = window.setTimeout(() => {
+                        banner.classList.remove('visible');
+                    }, 2200);
+                } catch (_) {}
+            }
+
+            // =========================================================================
+            // THEME & CLOCK FORMAT STATE
+            // =========================================================================
+            let isLightTheme = false;
+            let is24HourFormat = true;
+
+            function applyTheme(light) {
+                isLightTheme = Boolean(light);
+                const root = document.documentElement;
+                const labelEl = document.getElementById('theme-mode-label');
+                if (isLightTheme) {
+                    root.setAttribute('data-theme', 'light');
+                    if (labelEl) labelEl.textContent = 'Tối';
+                } else {
+                    root.removeAttribute('data-theme');
+                    if (labelEl) labelEl.textContent = 'Sáng';
+                }
+                writeStorage(KEY_THEME, isLightTheme ? 'light' : 'dark');
+            }
+
+            // =========================================================================
+            // INLINE "NHẠC VN" TRACK LIST (ZERO SYNTHESIZED AUDIO; DIRECT YOUTUBE ONLY)
+            // =========================================================================
+            const HO_VUON_MINH_EMBED = 'https://www.youtube.com/embed/CjQ0De1ZfWk?rel=0';
+            const HO_VUON_MINH_WATCH = 'http://www.youtube.com/watch?v=CjQ0De1ZfWk';
+
+            const VN_TRACKS = [
+                {
+                    id: 'ho_vuon_minh',
+                    title: 'Hò vươn mình',
+                    meta: 'YouTube trực tiếp',
+                    hasYoutube: true,
+                    embedUrl: HO_VUON_MINH_EMBED,
+                    watchUrl: HO_VUON_MINH_WATCH
+                },
+                {
+                    id: '1_vong_vn',
+                    title: '1 vòng VN',
+                    meta: 'Danh sách phát',
+                    hasYoutube: false,
+                    embedUrl: '',
+                    watchUrl: ''
+                },
+                {
+                    id: 'kiep_sau_van_la_nguoi_vn',
+                    title: 'Kiếp sau vẫn là người VN',
+                    meta: 'Danh sách phát',
+                    hasYoutube: false,
+                    embedUrl: '',
+                    watchUrl: ''
+                },
+                {
+                    id: 'con_gi_dep_hon',
+                    title: 'Còn gì đẹp hơn',
+                    meta: 'Danh sách phát',
+                    hasYoutube: false,
+                    embedUrl: '',
+                    watchUrl: ''
+                }
+            ];
+
+            let musicPanelOpen = false;
+            let selectedTrackIdx = 0;
+
+            function renderMusicPanelUI() {
+                try {
+                    const track = VN_TRACKS[selectedTrackIdx] || VN_TRACKS[0];
+                    const pillText = document.getElementById('music-pill-text');
+                    const pillDot = document.getElementById('music-pill-dot');
+                    const statusEl = document.getElementById('music-panel-status');
+                    const tracksGrid = document.getElementById('music-tracks-container');
+                    const ytBox = document.getElementById('youtube-ho-vuon-minh-box');
+                    const ytIframe = document.getElementById('yt-ho-vuon-minh-iframe');
+                    const unlinkedBox = document.getElementById('unlinked-track-notice');
+                    const unlinkedLabel = document.getElementById('unlinked-track-label');
+
+                    if (pillText) {
+                        pillText.textContent = `Nhạc VN · ${selectedTrackIdx + 1}. ${track.title}`;
+                    }
+                    if (pillDot) {
+                        pillDot.style.backgroundColor = track.hasYoutube ? 'var(--accent)' : 'var(--sage)';
+                    }
+                    if (statusEl) {
+                        statusEl.textContent = `${selectedTrackIdx + 1}. ${track.title}`;
+                    }
+
+                    if (tracksGrid) {
+                        tracksGrid.innerHTML = VN_TRACKS.map((item, idx) => {
+                            const active = idx === selectedTrackIdx;
+                            return `
+                                <button type="button" data-select-track="${idx}" class="track-choice-btn ${active ? 'active' : ''}">
+                                    <div style="min-width:0;">
+                                        <div class="track-choice-title">${idx + 1}. ${item.title}</div>
+                                        <div style="font-size:11px;color:var(--ink-secondary);margin-top:2px;">${item.meta}</div>
+                                    </div>
+                                    <span class="font-tabular" style="font-size:11px;font-weight:700;color:${active ? 'var(--accent)' : 'var(--ink-secondary)'};flex-shrink:0;">
+                                        ${active ? 'Đang chọn' : 'Chọn'}
+                                    </span>
+                                </button>
+                            `;
+                        }).join('');
+                    }
+
+                    if (ytBox && ytIframe) {
+                        if (track.hasYoutube && track.embedUrl) {
+                            ytBox.classList.add('active');
+                            if (ytIframe.getAttribute('src') !== track.embedUrl) {
+                                ytIframe.setAttribute('src', track.embedUrl);
+                            }
+                        } else {
+                            ytBox.classList.remove('active');
+                            if (ytIframe.getAttribute('src') !== 'about:blank') {
+                                ytIframe.setAttribute('src', 'about:blank');
+                            }
+                        }
+                    }
+
+                    if (unlinkedBox) {
+                        unlinkedBox.classList.toggle('active', !track.hasYoutube);
+                        if (unlinkedLabel) {
+                            unlinkedLabel.textContent = `${selectedTrackIdx + 1}. ${track.title}`;
+                        }
+                    }
+                } catch (_) {}
+            }
+
+            // =========================================================================
+            // LUNAR CALENDAR & TIMEZONE UTILITIES
+            // =========================================================================
+            const VI_WEEKDAYS = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+            const CAN_LIST = ['Canh', 'Tân', 'Nhâm', 'Quý', 'Giáp', 'Ất', 'Bính', 'Đinh', 'Mậu', 'Kỷ'];
+            const CHI_LIST = ['Thân', 'Dậu', 'Tuất', 'Hợi', 'Tý', 'Sửu', 'Dần', 'Mão', 'Thìn', 'Tỵ', 'Ngọ', 'Mùi'];
+
+            function jdFromDate(dd, mm, yy) {
+                const a = Math.floor((14 - mm) / 12);
+                const y = yy + 4800 - a;
+                const m = mm + 12 * a - 3;
+                let jd = dd + Math.floor((153 * m + 2) / 5) + 365 * y + Math.floor(y / 4) - Math.floor(y / 100) + Math.floor(y / 400) - 32045;
+                if (jd < 2299161) {
+                    jd = dd + Math.floor((153 * m + 2) / 5) + 365 * y + Math.floor(y / 4) - 32083;
+                }
+                return jd;
+            }
+
+            function calcNewMoonDay(k, tz) {
+                const T = k / 1236.85;
+                const T2 = T * T;
+                const T3 = T2 * T;
+                const dr = Math.PI / 180;
+                let Jd1 = 2415020.75933 + 29.53058868 * k + 0.0001178 * T2 - 0.000000155 * T3;
+                Jd1 += 0.00033 * Math.sin((166.56 + 132.87 * T - 0.009173 * T2) * dr);
+                const M = 359.2242 + 29.10535608 * k - 0.0000333 * T2 - 0.00000347 * T3;
+                const Mpr = 306.0253 + 385.81691806 * k + 0.0107306 * T2 + 0.00001236 * T3;
+                const F = 21.2964 + 390.67050646 * k - 0.0016528 * T2 - 0.00000239 * T3;
+                let C1 = (0.1734 - 0.000393 * T) * Math.sin(M * dr) + 0.0021 * Math.sin(2 * dr * M);
+                C1 -= 0.4068 * Math.sin(Mpr * dr) + 0.0161 * Math.sin(dr * 2 * Mpr);
+                C1 -= 0.0004 * Math.sin(dr * 3 * Mpr);
+                C1 += 0.0104 * Math.sin(dr * 2 * F) - 0.0051 * Math.sin(dr * (M + Mpr));
+                C1 -= 0.0074 * Math.sin(dr * (M - Mpr)) + 0.0004 * Math.sin(dr * (2 * F + M));
+                C1 -= 0.0004 * Math.sin(dr * (2 * F - M)) - 0.0006 * Math.sin(dr * (2 * F + Mpr));
+                C1 += 0.0010 * Math.sin(dr * (2 * F - Mpr)) + 0.0005 * Math.sin(dr * (2 * Mpr + M));
+                const deltat = T < -11
+                    ? 0.001 + 0.000839 * T + 0.0002261 * T2 - 0.00000845 * T3 - 0.000000081 * T * T3
+                    : -0.000278 + 0.000265 * T + 0.000262 * T2;
+                return Math.floor(Jd1 + C1 - deltat + 0.5 + tz / 24);
+            }
+
+            function calcSunLongitudeIndex(jdn, tz) {
+                const T = (jdn - 2451545.5 - tz / 24) / 36525;
+                const T2 = T * T;
+                const dr = Math.PI / 180;
+                const M = 357.52910 + 35999.05030 * T - 0.0001559 * T2 - 0.00000048 * T * T2;
+                const L0 = 280.46645 + 36000.76983 * T + 0.0003032 * T2;
+                let DL = (1.914600 - 0.004817 * T - 0.000014 * T2) * Math.sin(dr * M);
+                DL += (0.019993 - 0.000101 * T) * Math.sin(dr * 2 * M) + 0.000290 * Math.sin(dr * 3 * M);
+                let L = (L0 + DL) * dr;
+                L = L - Math.PI * 2 * Math.floor(L / (Math.PI * 2));
+                return Math.floor(L / Math.PI * 6);
+            }
+
+            function calcLunarMonth11(yy, tz) {
+                const off = jdFromDate(31, 12, yy) - 2415021;
+                const k = Math.floor(off / 29.530588853);
+                let nm = calcNewMoonDay(k, tz);
+                if (calcSunLongitudeIndex(nm, tz) >= 9) nm = calcNewMoonDay(k - 1, tz);
+                return nm;
+            }
+
+            function calcLeapMonthOffset(a11, tz) {
+                const k = Math.floor((a11 - 2415021.076998695) / 29.530588853 + 0.5);
+                let last = 0;
+                let i = 1;
+                let arc = calcSunLongitudeIndex(calcNewMoonDay(k + i, tz), tz);
+                while (arc !== last && i < 14) {
+                    last = arc;
+                    i++;
+                    arc = calcSunLongitudeIndex(calcNewMoonDay(k + i, tz), tz);
+                }
+                return i - 1;
+            }
+
+            function convertSolarToLunar(dd, mm, yy, tz = 7) {
+                try {
+                    const dayNum = jdFromDate(dd, mm, yy);
+                    const k = Math.floor((dayNum - 2415021.076998695) / 29.530588853);
+                    let mStart = calcNewMoonDay(k + 1, tz);
+                    if (mStart > dayNum) mStart = calcNewMoonDay(k, tz);
+                    let a11 = calcLunarMonth11(yy, tz);
+                    let b11 = a11;
+                    let lunarYear;
+                    if (a11 >= mStart) {
+                        lunarYear = yy;
+                        a11 = calcLunarMonth11(yy - 1, tz);
+                    } else {
+                        lunarYear = yy + 1;
+                        b11 = calcLunarMonth11(yy + 1, tz);
+                    }
+                    const lunarDay = dayNum - mStart + 1;
+                    const diff = Math.floor((mStart - a11) / 29);
+                    let lunarLeap = 0;
+                    let lunarMonth = diff + 11;
+                    if (b11 - a11 > 365) {
+                        const leapDiff = calcLeapMonthOffset(a11, tz);
+                        if (diff >= leapDiff) {
+                            lunarMonth = diff + 10;
+                            if (diff === leapDiff) lunarLeap = 1;
+                        }
+                    }
+                    if (lunarMonth > 12) lunarMonth -= 12;
+                    if (lunarMonth >= 11 && diff < 4) lunarYear -= 1;
+                    const canChi = `${CAN_LIST[((lunarYear % 10) + 10) % 10]} ${CHI_LIST[((lunarYear % 12) + 12) % 12]}`;
+                    return { day: lunarDay, month: lunarMonth, year: lunarYear, leap: lunarLeap, canChi };
+                } catch (_) {
+                    return { day: dd, month: mm, year: yy, leap: 0, canChi: '' };
+                }
+            }
+
+            function extractZoneTime(date, tzName, fixedOffsetMin) {
+                if (typeof fixedOffsetMin === 'number' && !Number.isNaN(fixedOffsetMin)) {
+                    const shifted = new Date(date.getTime() + fixedOffsetMin * 60000);
+                    const year = shifted.getUTCFullYear();
+                    const month = shifted.getUTCMonth() + 1;
+                    const day = shifted.getUTCDate();
+                    const hour = shifted.getUTCHours();
+                    const minute = shifted.getUTCMinutes();
+                    const second = shifted.getUTCSeconds();
+                    const weekday = shifted.getUTCDay();
+                    const dayOfYear = Math.floor((Date.UTC(year, month - 1, day) - Date.UTC(year, 0, 1)) / 86400000) + 1;
+                    const leapYear = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+                    return {
+                        year, month, day, hour, minute, second, weekday,
+                        offsetMin: fixedOffsetMin,
+                        dayOfYear,
+                        daysInYear: leapYear ? 366 : 365,
+                        isoDay: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+                    };
+                }
+
+                try {
+                    const opts = {
+                        hour12: false,
+                        year: 'numeric', month: '2-digit', day: '2-digit',
+                        hour: '2-digit', minute: '2-digit', second: '2-digit'
+                    };
+                    if (tzName) opts.timeZone = tzName;
+                    const parts = new Intl.DateTimeFormat('en-GB', opts).formatToParts(date);
+                    const map = {};
+                    for (const p of parts) map[p.type] = p.value;
+
+                    let hour = parseInt(map.hour, 10);
+                    if (hour === 24) hour = 0;
+                    const minute = parseInt(map.minute, 10);
+                    const second = parseInt(map.second, 10);
+                    const day = parseInt(map.day, 10);
+                    const month = parseInt(map.month, 10);
+                    const year = parseInt(map.year, 10);
+
+                    const wallUtc = Date.UTC(year, month - 1, day, hour, minute, second);
+                    const realUtc = Date.UTC(
+                        date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(),
+                        date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds()
+                    );
+                    const offsetMin = Math.round((wallUtc - realUtc) / 60000);
+                    const weekday = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+                    const dayOfYear = Math.floor((Date.UTC(year, month - 1, day) - Date.UTC(year, 0, 1)) / 86400000) + 1;
+                    const leapYear = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+
+                    return {
+                        year, month, day, hour, minute, second, weekday,
+                        offsetMin,
+                        dayOfYear,
+                        daysInYear: leapYear ? 366 : 365,
+                        isoDay: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+                    };
+                } catch (_) {
+                    const year = date.getFullYear();
+                    const month = date.getMonth() + 1;
+                    const day = date.getDate();
+                    const hour = date.getHours();
+                    const minute = date.getMinutes();
+                    const second = date.getSeconds();
+                    const weekday = date.getDay();
+                    const offsetMin = -date.getTimezoneOffset();
+                    const dayOfYear = Math.floor((Date.UTC(year, month - 1, day) - Date.UTC(year, 0, 1)) / 86400000) + 1;
+                    const leapYear = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+                    return {
+                        year, month, day, hour, minute, second, weekday,
+                        offsetMin,
+                        dayOfYear,
+                        daysInYear: leapYear ? 366 : 365,
+                        isoDay: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+                    };
+                }
+            }
+
+            function fmtUtcOffset(offsetMin) {
+                const sign = offsetMin >= 0 ? '+' : '-';
+                const abs = Math.abs(offsetMin);
+                const h = Math.floor(abs / 60);
+                const m = abs % 60;
+                return m === 0 ? `UTC${sign}${h}` : `UTC${sign}${h}:${String(m).padStart(2, '0')}`;
+            }
+
+            function fmtOffsetDiff(targetMin, localMin) {
+                const diff = targetMin - localMin;
+                if (diff === 0) return 'Cùng giờ';
+                const sign = diff > 0 ? '+' : '-';
+                const abs = Math.abs(diff);
+                const h = Math.floor(abs / 60);
+                const m = abs % 60;
+                return m === 0 ? `${sign}${h}h` : `${sign}${h}h${String(m).padStart(2, '0')}`;
+            }
+
+            function fmtClockHour(h24) {
+                if (is24HourFormat) return { hh: String(h24).padStart(2, '0'), period: '' };
+                const period = h24 >= 12 ? 'CH' : 'SA';
+                let h12 = h24 % 12;
+                if (h12 === 0) h12 = 12;
+                return { hh: String(h12).padStart(2, '0'), period };
+            }
+
+            // =========================================================================
+            // WORLD CITIES DATASET (UTC-12 TO UTC+14)
+            // =========================================================================
+            const WORLD_DATASET = [
+                { id: 'baker_is', city: 'Đảo Baker', country: 'Hoa Kỳ (TBD)', region: 'asia', tz: null, fixedOffset: -720 },
+                { id: 'howland_is', city: 'Đảo Howland', country: 'Hoa Kỳ (TBD)', region: 'asia', tz: null, fixedOffset: -720 },
+                { id: 'pago_pago', city: 'Pago Pago', country: 'Samoa thuộc Mỹ', region: 'asia', tz: 'Pacific/Pago_Pago', fixedOffset: null },
+                { id: 'alofi', city: 'Alofi', country: 'Niue', region: 'asia', tz: 'Pacific/Niue', fixedOffset: null },
+                { id: 'honolulu', city: 'Honolulu', country: 'Hoa Kỳ (Hawaii)', region: 'americas', tz: 'Pacific/Honolulu', fixedOffset: null },
+                { id: 'papeete', city: 'Papeete', country: 'Polynesia thuộc Pháp', region: 'asia', tz: 'Pacific/Tahiti', fixedOffset: null },
+                { id: 'rarotonga', city: 'Rarotonga', country: 'Quần đảo Cook', region: 'asia', tz: 'Pacific/Rarotonga', fixedOffset: null },
+                { id: 'anchorage', city: 'Anchorage', country: 'Hoa Kỳ (Alaska)', region: 'americas', tz: 'America/Anchorage', fixedOffset: null },
+                { id: 'juneau', city: 'Juneau', country: 'Hoa Kỳ (Alaska)', region: 'americas', tz: 'America/Juneau', fixedOffset: null },
+                { id: 'vancouver', city: 'Vancouver', country: 'Canada', region: 'americas', tz: 'America/Vancouver', fixedOffset: null },
+                { id: 'los_angeles', city: 'Los Angeles', country: 'Hoa Kỳ', region: 'americas', tz: 'America/Los_Angeles', fixedOffset: null },
+                { id: 'san_francisco', city: 'San Francisco', country: 'Hoa Kỳ', region: 'americas', tz: 'America/Los_Angeles', fixedOffset: null },
+                { id: 'seattle', city: 'Seattle', country: 'Hoa Kỳ', region: 'americas', tz: 'America/Los_Angeles', fixedOffset: null },
+                { id: 'portland', city: 'Portland', country: 'Hoa Kỳ', region: 'americas', tz: 'America/Los_Angeles', fixedOffset: null },
+                { id: 'las_vegas', city: 'Las Vegas', country: 'Hoa Kỳ', region: 'americas', tz: 'America/Los_Angeles', fixedOffset: null },
+                { id: 'tijuana', city: 'Tijuana', country: 'Mexico', region: 'americas', tz: 'America/Tijuana', fixedOffset: null },
+                { id: 'denver', city: 'Denver', country: 'Hoa Kỳ', region: 'americas', tz: 'America/Denver', fixedOffset: null },
+                { id: 'phoenix', city: 'Phoenix', country: 'Hoa Kỳ', region: 'americas', tz: 'America/Phoenix', fixedOffset: null },
+                { id: 'calgary', city: 'Calgary', country: 'Canada', region: 'americas', tz: 'America/Edmonton', fixedOffset: null },
+                { id: 'mexico_city', city: 'Thành phố Mexico', country: 'Mexico', region: 'americas', tz: 'America/Mexico_City', fixedOffset: null },
+                { id: 'guatemala_city', city: 'Thành phố Guatemala', country: 'Guatemala', region: 'americas', tz: 'America/Guatemala', fixedOffset: null },
+                { id: 'san_salvador', city: 'San Salvador', country: 'El Salvador', region: 'americas', tz: 'America/El_Salvador', fixedOffset: null },
+                { id: 'tegucigalpa', city: 'Tegucigalpa', country: 'Honduras', region: 'americas', tz: 'America/Tegucigalpa', fixedOffset: null },
+                { id: 'managua', city: 'Managua', country: 'Nicaragua', region: 'americas', tz: 'America/Managua', fixedOffset: null },
+                { id: 'san_jose_cr', city: 'San José', country: 'Costa Rica', region: 'americas', tz: 'America/Costa_Rica', fixedOffset: null },
+                { id: 'chicago', city: 'Chicago', country: 'Hoa Kỳ', region: 'americas', tz: 'America/Chicago', fixedOffset: null },
+                { id: 'houston', city: 'Houston', country: 'Hoa Kỳ', region: 'americas', tz: 'America/Chicago', fixedOffset: null },
+                { id: 'dallas', city: 'Dallas', country: 'Hoa Kỳ', region: 'americas', tz: 'America/Chicago', fixedOffset: null },
+                { id: 'winnipeg', city: 'Winnipeg', country: 'Canada', region: 'americas', tz: 'America/Winnipeg', fixedOffset: null },
+                { id: 'new_york', city: 'New York', country: 'Hoa Kỳ', region: 'americas', tz: 'America/New_York', fixedOffset: null },
+                { id: 'washington_dc', city: 'Washington, D.C.', country: 'Hoa Kỳ', region: 'americas', tz: 'America/New_York', fixedOffset: null },
+                { id: 'miami', city: 'Miami', country: 'Hoa Kỳ', region: 'americas', tz: 'America/New_York', fixedOffset: null },
+                { id: 'boston', city: 'Boston', country: 'Hoa Kỳ', region: 'americas', tz: 'America/New_York', fixedOffset: null },
+                { id: 'atlanta', city: 'Atlanta', country: 'Hoa Kỳ', region: 'americas', tz: 'America/New_York', fixedOffset: null },
+                { id: 'toronto', city: 'Toronto', country: 'Canada', region: 'americas', tz: 'America/Toronto', fixedOffset: null },
+                { id: 'montreal', city: 'Montreal', country: 'Canada', region: 'americas', tz: 'America/Toronto', fixedOffset: null },
+                { id: 'ottawa', city: 'Ottawa', country: 'Canada', region: 'americas', tz: 'America/Toronto', fixedOffset: null },
+                { id: 'lima', city: 'Lima', country: 'Peru', region: 'americas', tz: 'America/Lima', fixedOffset: null },
+                { id: 'bogota', city: 'Bogotá', country: 'Colombia', region: 'americas', tz: 'America/Bogota', fixedOffset: null },
+                { id: 'quito', city: 'Quito', country: 'Ecuador', region: 'americas', tz: 'America/Guayaquil', fixedOffset: null },
+                { id: 'panama_city', city: 'Thành phố Panama', country: 'Panama', region: 'americas', tz: 'America/Panama', fixedOffset: null },
+                { id: 'havana', city: 'La Habana', country: 'Cuba', region: 'americas', tz: 'America/Havana', fixedOffset: null },
+                { id: 'kingston', city: 'Kingston', country: 'Jamaica', region: 'americas', tz: 'America/Jamaica', fixedOffset: null },
+                { id: 'nassau', city: 'Nassau', country: 'Bahamas', region: 'americas', tz: 'America/Nassau', fixedOffset: null },
+                { id: 'caracas', city: 'Caracas', country: 'Venezuela', region: 'americas', tz: 'America/Caracas', fixedOffset: null },
+                { id: 'santiago', city: 'Santiago', country: 'Chile', region: 'americas', tz: 'America/Santiago', fixedOffset: null },
+                { id: 'la_paz', city: 'La Paz', country: 'Bolivia', region: 'americas', tz: 'America/La_Paz', fixedOffset: null },
+                { id: 'asuncion', city: 'Asunción', country: 'Paraguay', region: 'americas', tz: 'America/Asuncion', fixedOffset: null },
+                { id: 'santo_domingo', city: 'Santo Domingo', country: 'CH Dominica', region: 'americas', tz: 'America/Santo_Domingo', fixedOffset: null },
+                { id: 'san_juan', city: 'San Juan', country: 'Puerto Rico', region: 'americas', tz: 'America/Puerto_Rico', fixedOffset: null },
+                { id: 'georgetown', city: 'Georgetown', country: 'Guyana', region: 'americas', tz: 'America/Guyana', fixedOffset: null },
+                { id: 'paramaribo', city: 'Paramaribo', country: 'Suriname', region: 'americas', tz: 'America/Paramaribo', fixedOffset: null },
+                { id: 'sao_paulo', city: 'São Paulo', country: 'Brasil', region: 'americas', tz: 'America/Sao_Paulo', fixedOffset: null },
+                { id: 'rio_de_janeiro', city: 'Rio de Janeiro', country: 'Brasil', region: 'americas', tz: 'America/Sao_Paulo', fixedOffset: null },
+                { id: 'brasilia', city: 'Brasília', country: 'Brasil', region: 'americas', tz: 'America/Sao_Paulo', fixedOffset: null },
+                { id: 'buenos_aires', city: 'Buenos Aires', country: 'Argentina', region: 'americas', tz: 'America/Argentina/Buenos_Aires', fixedOffset: null },
+                { id: 'montevideo', city: 'Montevideo', country: 'Uruguay', region: 'americas', tz: 'America/Montevideo', fixedOffset: null },
+                { id: 'cayenne', city: 'Cayenne', country: 'Guyane thuộc Pháp', region: 'americas', tz: 'America/Cayenne', fixedOffset: null },
+                { id: 'nuuk', city: 'Nuuk', country: 'Greenland', region: 'americas', tz: 'America/Nuuk', fixedOffset: null },
+                { id: 'azores', city: 'Quần đảo Azores', country: 'Bồ Đào Nha', region: 'europe', tz: 'Atlantic/Azores', fixedOffset: null },
+                { id: 'praia', city: 'Praia', country: 'Cabo Verde', region: 'mena_africa', tz: 'Atlantic/Cape_Verde', fixedOffset: null },
+                { id: 'utc_gmt', city: 'UTC / Greenwich', country: 'Chuẩn Quốc Tế', region: 'europe', tz: 'UTC', fixedOffset: null },
+                { id: 'london', city: 'London', country: 'Vương quốc Anh', region: 'europe', tz: 'Europe/London', fixedOffset: null },
+                { id: 'dublin', city: 'Dublin', country: 'Ireland', region: 'europe', tz: 'Europe/Dublin', fixedOffset: null },
+                { id: 'lisbon', city: 'Lisbon', country: 'Bồ Đào Nha', region: 'europe', tz: 'Europe/Lisbon', fixedOffset: null },
+                { id: 'reykjavik', city: 'Reykjavik', country: 'Iceland', region: 'europe', tz: 'Atlantic/Reykjavik', fixedOffset: null },
+                { id: 'casablanca', city: 'Casablanca', country: 'Maroc', region: 'mena_africa', tz: 'Africa/Casablanca', fixedOffset: null },
+                { id: 'accra', city: 'Accra', country: 'Ghana', region: 'mena_africa', tz: 'Africa/Accra', fixedOffset: null },
+                { id: 'dakar', city: 'Dakar', country: 'Sénégal', region: 'mena_africa', tz: 'Africa/Dakar', fixedOffset: null },
+                { id: 'abidjan', city: 'Abidjan', country: 'Bờ Biển Ngà', region: 'mena_africa', tz: 'Africa/Abidjan', fixedOffset: null },
+                { id: 'paris', city: 'Paris', country: 'Pháp', region: 'europe', tz: 'Europe/Paris', fixedOffset: null },
+                { id: 'berlin', city: 'Berlin', country: 'Đức', region: 'europe', tz: 'Europe/Berlin', fixedOffset: null },
+                { id: 'madrid', city: 'Madrid', country: 'Tây Ban Nha', region: 'europe', tz: 'Europe/Madrid', fixedOffset: null },
+                { id: 'rome', city: 'Roma', country: 'Ý', region: 'europe', tz: 'Europe/Rome', fixedOffset: null },
+                { id: 'milan', city: 'Milan', country: 'Ý', region: 'europe', tz: 'Europe/Rome', fixedOffset: null },
+                { id: 'amsterdam', city: 'Amsterdam', country: 'Hà Lan', region: 'europe', tz: 'Europe/Amsterdam', fixedOffset: null },
+                { id: 'brussels', city: 'Brussels', country: 'Bỉ', region: 'europe', tz: 'Europe/Brussels', fixedOffset: null },
+                { id: 'zurich', city: 'Zurich', country: 'Thụy Sĩ', region: 'europe', tz: 'Europe/Zurich', fixedOffset: null },
+                { id: 'vienna', city: 'Vienna', country: 'Áo', region: 'europe', tz: 'Europe/Vienna', fixedOffset: null },
+                { id: 'prague', city: 'Prague', country: 'Séc', region: 'europe', tz: 'Europe/Prague', fixedOffset: null },
+                { id: 'warsaw', city: 'Warsaw', country: 'Ba Lan', region: 'europe', tz: 'Europe/Warsaw', fixedOffset: null },
+                { id: 'stockholm', city: 'Stockholm', country: 'Thụy Điển', region: 'europe', tz: 'Europe/Stockholm', fixedOffset: null },
+                { id: 'oslo', city: 'Oslo', country: 'Na Uy', region: 'europe', tz: 'Europe/Oslo', fixedOffset: null },
+                { id: 'copenhagen', city: 'Copenhagen', country: 'Đan Mạch', region: 'europe', tz: 'Europe/Copenhagen', fixedOffset: null },
+                { id: 'budapest', city: 'Budapest', country: 'Hungary', region: 'europe', tz: 'Europe/Budapest', fixedOffset: null },
+                { id: 'belgrade', city: 'Belgrade', country: 'Serbia', region: 'europe', tz: 'Europe/Belgrade', fixedOffset: null },
+                { id: 'zagreb', city: 'Zagreb', country: 'Croatia', region: 'europe', tz: 'Europe/Zagreb', fixedOffset: null },
+                { id: 'lagos', city: 'Lagos', country: 'Nigeria', region: 'mena_africa', tz: 'Africa/Lagos', fixedOffset: null },
+                { id: 'algiers', city: 'Algiers', country: 'Algérie', region: 'mena_africa', tz: 'Africa/Algiers', fixedOffset: null },
+                { id: 'tunis', city: 'Tunis', country: 'Tunisia', region: 'mena_africa', tz: 'Africa/Tunis', fixedOffset: null },
+                { id: 'kinshasa', city: 'Kinshasa', country: 'CHDC Congo', region: 'mena_africa', tz: 'Africa/Kinshasa', fixedOffset: null },
+                { id: 'luanda', city: 'Luanda', country: 'Angola', region: 'mena_africa', tz: 'Africa/Luanda', fixedOffset: null },
+                { id: 'athens', city: 'Athens', country: 'Hy Lạp', region: 'europe', tz: 'Europe/Athens', fixedOffset: null },
+                { id: 'bucharest', city: 'Bucharest', country: 'Romania', region: 'europe', tz: 'Europe/Bucharest', fixedOffset: null },
+                { id: 'sofia', city: 'Sofia', country: 'Bulgaria', region: 'europe', tz: 'Europe/Sofia', fixedOffset: null },
+                { id: 'helsinki', city: 'Helsinki', country: 'Phần Lan', region: 'europe', tz: 'Europe/Helsinki', fixedOffset: null },
+                { id: 'kyiv', city: 'Kyiv', country: 'Ukraine', region: 'europe', tz: 'Europe/Kyiv', fixedOffset: null },
+                { id: 'tallinn', city: 'Tallinn', country: 'Estonia', region: 'europe', tz: 'Europe/Tallinn', fixedOffset: null },
+                { id: 'riga', city: 'Riga', country: 'Latvia', region: 'europe', tz: 'Europe/Riga', fixedOffset: null },
+                { id: 'vilnius', city: 'Vilnius', country: 'Litva', region: 'europe', tz: 'Europe/Vilnius', fixedOffset: null },
+                { id: 'cairo', city: 'Cairo', country: 'Ai Cập', region: 'mena_africa', tz: 'Africa/Cairo', fixedOffset: null },
+                { id: 'johannesburg', city: 'Johannesburg', country: 'Nam Phi', region: 'mena_africa', tz: 'Africa/Johannesburg', fixedOffset: null },
+                { id: 'cape_town', city: 'Cape Town', country: 'Nam Phi', region: 'mena_africa', tz: 'Africa/Johannesburg', fixedOffset: null },
+                { id: 'harare', city: 'Harare', country: 'Zimbabwe', region: 'mena_africa', tz: 'Africa/Harare', fixedOffset: null },
+                { id: 'windhoek', city: 'Windhoek', country: 'Namibia', region: 'mena_africa', tz: 'Africa/Windhoek', fixedOffset: null },
+                { id: 'lusaka', city: 'Lusaka', country: 'Zambia', region: 'mena_africa', tz: 'Africa/Lusaka', fixedOffset: null },
+                { id: 'jerusalem', city: 'Jerusalem', country: 'Israel', region: 'mena_africa', tz: 'Asia/Jerusalem', fixedOffset: null },
+                { id: 'amman', city: 'Amman', country: 'Jordan', region: 'mena_africa', tz: 'Asia/Amman', fixedOffset: null },
+                { id: 'beirut', city: 'Beirut', country: 'Liban', region: 'mena_africa', tz: 'Asia/Beirut', fixedOffset: null },
+                { id: 'istanbul', city: 'Istanbul', country: 'Thổ Nhĩ Kỳ', region: 'europe', tz: 'Europe/Istanbul', fixedOffset: null },
+                { id: 'moscow', city: 'Moskva (Moscow)', country: 'Nga', region: 'europe', tz: 'Europe/Moscow', fixedOffset: null },
+                { id: 'st_petersburg', city: 'Saint Petersburg', country: 'Nga', region: 'europe', tz: 'Europe/Moscow', fixedOffset: null },
+                { id: 'minsk', city: 'Minsk', country: 'Belarus', region: 'europe', tz: 'Europe/Minsk', fixedOffset: null },
+                { id: 'riyadh', city: 'Riyadh', country: 'Ả Rập Xê Út', region: 'mena_africa', tz: 'Asia/Riyadh', fixedOffset: null },
+                { id: 'doha', city: 'Doha', country: 'Qatar', region: 'mena_africa', tz: 'Asia/Qatar', fixedOffset: null },
+                { id: 'kuwait_city', city: 'Thành phố Kuwait', country: 'Kuwait', region: 'mena_africa', tz: 'Asia/Kuwait', fixedOffset: null },
+                { id: 'manama', city: 'Manama', country: 'Bahrain', region: 'mena_africa', tz: 'Asia/Bahrain', fixedOffset: null },
+                { id: 'baghdad', city: 'Baghdad', country: 'Iraq', region: 'mena_africa', tz: 'Asia/Baghdad', fixedOffset: null },
+                { id: 'nairobi', city: 'Nairobi', country: 'Kenya', region: 'mena_africa', tz: 'Africa/Nairobi', fixedOffset: null },
+                { id: 'addis_ababa', city: 'Addis Ababa', country: 'Ethiopia', region: 'mena_africa', tz: 'Africa/Addis_Ababa', fixedOffset: null },
+                { id: 'kampala', city: 'Kampala', country: 'Uganda', region: 'mena_africa', tz: 'Africa/Kampala', fixedOffset: null },
+                { id: 'dar_es_salaam', city: 'Dar es Salaam', country: 'Tanzania', region: 'mena_africa', tz: 'Africa/Dar_es_Salaam', fixedOffset: null },
+                { id: 'antananarivo', city: 'Antananarivo', country: 'Madagascar', region: 'mena_africa', tz: 'Indian/Antananarivo', fixedOffset: null },
+                { id: 'tehran', city: 'Tehran', country: 'Iran', region: 'mena_africa', tz: 'Asia/Tehran', fixedOffset: null },
+                { id: 'dubai', city: 'Dubai', country: 'UAE', region: 'mena_africa', tz: 'Asia/Dubai', fixedOffset: null },
+                { id: 'abu_dhabi', city: 'Abu Dhabi', country: 'UAE', region: 'mena_africa', tz: 'Asia/Dubai', fixedOffset: null },
+                { id: 'muscat', city: 'Muscat', country: 'Oman', region: 'mena_africa', tz: 'Asia/Muscat', fixedOffset: null },
+                { id: 'baku', city: 'Baku', country: 'Azerbaijan', region: 'asia', tz: 'Asia/Baku', fixedOffset: null },
+                { id: 'tbilisi', city: 'Tbilisi', country: 'Gruzia', region: 'asia', tz: 'Asia/Tbilisi', fixedOffset: null },
+                { id: 'yerevan', city: 'Yerevan', country: 'Armenia', region: 'asia', tz: 'Asia/Yerevan', fixedOffset: null },
+                { id: 'port_louis', city: 'Port Louis', country: 'Mauritius', region: 'mena_africa', tz: 'Indian/Mauritius', fixedOffset: null },
+                { id: 'kabul', city: 'Kabul', country: 'Afghanistan', region: 'asia', tz: 'Asia/Kabul', fixedOffset: null },
+                { id: 'karachi', city: 'Karachi', country: 'Pakistan', region: 'asia', tz: 'Asia/Karachi', fixedOffset: null },
+                { id: 'islamabad', city: 'Islamabad', country: 'Pakistan', region: 'asia', tz: 'Asia/Karachi', fixedOffset: null },
+                { id: 'tashkent', city: 'Tashkent', country: 'Uzbekistan', region: 'asia', tz: 'Asia/Tashkent', fixedOffset: null },
+                { id: 'almaty', city: 'Almaty', country: 'Kazakhstan', region: 'asia', tz: 'Asia/Almaty', fixedOffset: null },
+                { id: 'bishkek', city: 'Bishkek', country: 'Kyrgyzstan', region: 'asia', tz: 'Asia/Bishkek', fixedOffset: null },
+                { id: 'dushanbe', city: 'Dushanbe', country: 'Tajikistan', region: 'asia', tz: 'Asia/Dushanbe', fixedOffset: null },
+                { id: 'ashgabat', city: 'Ashgabat', country: 'Turkmenistan', region: 'asia', tz: 'Asia/Ashgabat', fixedOffset: null },
+                { id: 'male', city: 'Malé', country: 'Maldives', region: 'asia', tz: 'Indian/Maldives', fixedOffset: null },
+                { id: 'yekaterinburg', city: 'Yekaterinburg', country: 'Nga', region: 'asia', tz: 'Asia/Yekaterinburg', fixedOffset: null },
+                { id: 'mumbai', city: 'Mumbai', country: 'Ấn Độ', region: 'asia', tz: 'Asia/Kolkata', fixedOffset: null },
+                { id: 'new_delhi', city: 'New Delhi', country: 'Ấn Độ', region: 'asia', tz: 'Asia/Kolkata', fixedOffset: null },
+                { id: 'bengaluru', city: 'Bengaluru', country: 'Ấn Độ', region: 'asia', tz: 'Asia/Kolkata', fixedOffset: null },
+                { id: 'chennai', city: 'Chennai', country: 'Ấn Độ', region: 'asia', tz: 'Asia/Kolkata', fixedOffset: null },
+                { id: 'colombo', city: 'Colombo', country: 'Sri Lanka', region: 'asia', tz: 'Asia/Colombo', fixedOffset: null },
+                { id: 'kathmandu', city: 'Kathmandu', country: 'Nepal', region: 'asia', tz: 'Asia/Kathmandu', fixedOffset: null },
+                { id: 'dhaka', city: 'Dhaka', country: 'Bangladesh', region: 'asia', tz: 'Asia/Dhaka', fixedOffset: null },
+                { id: 'thimphu', city: 'Thimphu', country: 'Bhutan', region: 'asia', tz: 'Asia/Thimphu', fixedOffset: null },
+                { id: 'yangon', city: 'Yangon', country: 'Myanmar', region: 'asia', tz: 'Asia/Yangon', fixedOffset: null },
+                { id: 'hanoi', city: 'Hà Nội', country: 'Việt Nam', region: 'asia', tz: 'Asia/Ho_Chi_Minh', fixedOffset: null },
+                { id: 'hcm', city: 'TP. Hồ Chí Minh', country: 'Việt Nam', region: 'asia', tz: 'Asia/Ho_Chi_Minh', fixedOffset: null },
+                { id: 'danang', city: 'Đà Nẵng', country: 'Việt Nam', region: 'asia', tz: 'Asia/Ho_Chi_Minh', fixedOffset: null },
+                { id: 'haiphong', city: 'Hải Phòng', country: 'Việt Nam', region: 'asia', tz: 'Asia/Ho_Chi_Minh', fixedOffset: null },
+                { id: 'cantho', city: 'Cần Thơ', country: 'Việt Nam', region: 'asia', tz: 'Asia/Ho_Chi_Minh', fixedOffset: null },
+                { id: 'bangkok', city: 'Bangkok', country: 'Thái Lan', region: 'asia', tz: 'Asia/Bangkok', fixedOffset: null },
+                { id: 'phnom_penh', city: 'Phnôm Pênh', country: 'Campuchia', region: 'asia', tz: 'Asia/Phnom_Penh', fixedOffset: null },
+                { id: 'vientiane', city: 'Viêng Chăn', country: 'Lào', region: 'asia', tz: 'Asia/Vientiane', fixedOffset: null },
+                { id: 'jakarta', city: 'Jakarta', country: 'Indonesia', region: 'asia', tz: 'Asia/Jakarta', fixedOffset: null },
+                { id: 'novosibirsk', city: 'Novosibirsk', country: 'Nga', region: 'asia', tz: 'Asia/Novosibirsk', fixedOffset: null },
+                { id: 'christmas_is', city: 'Đảo Christmas', country: 'Úc', region: 'asia', tz: 'Indian/Christmas', fixedOffset: null },
+                { id: 'singapore', city: 'Singapore', country: 'Singapore', region: 'asia', tz: 'Asia/Singapore', fixedOffset: null },
+                { id: 'kuala_lumpur', city: 'Kuala Lumpur', country: 'Malaysia', region: 'asia', tz: 'Asia/Kuala_Lumpur', fixedOffset: null },
+                { id: 'beijing', city: 'Bắc Kinh', country: 'Trung Quốc', region: 'asia', tz: 'Asia/Shanghai', fixedOffset: null },
+                { id: 'shanghai', city: 'Thượng Hải', country: 'Trung Quốc', region: 'asia', tz: 'Asia/Shanghai', fixedOffset: null },
+                { id: 'shenzhen', city: 'Thâm Quyến', country: 'Trung Quốc', region: 'asia', tz: 'Asia/Shanghai', fixedOffset: null },
+                { id: 'hong_kong', city: 'Hồng Kông', country: 'Trung Quốc', region: 'asia', tz: 'Asia/Hong_Kong', fixedOffset: null },
+                { id: 'macau', city: 'Ma Cao', country: 'Trung Quốc', region: 'asia', tz: 'Asia/Macau', fixedOffset: null },
+                { id: 'taipei', city: 'Đài Bắc', country: 'Đài Loan', region: 'asia', tz: 'Asia/Taipei', fixedOffset: null },
+                { id: 'manila', city: 'Manila', country: 'Philippines', region: 'asia', tz: 'Asia/Manila', fixedOffset: null },
+                { id: 'bali', city: 'Bali (Denpasar)', country: 'Indonesia', region: 'asia', tz: 'Asia/Makassar', fixedOffset: null },
+                { id: 'perth', city: 'Perth', country: 'Úc', region: 'asia', tz: 'Australia/Perth', fixedOffset: null },
+                { id: 'ulaanbaatar', city: 'Ulaanbaatar', country: 'Mông Cổ', region: 'asia', tz: 'Asia/Ulaanbaatar', fixedOffset: null },
+                { id: 'brunei', city: 'Bandar Seri Begawan', country: 'Brunei', region: 'asia', tz: 'Asia/Brunei', fixedOffset: null },
+                { id: 'adelaide', city: 'Adelaide', country: 'Úc', region: 'asia', tz: 'Australia/Adelaide', fixedOffset: null },
+                { id: 'darwin', city: 'Darwin', country: 'Úc', region: 'asia', tz: 'Australia/Darwin', fixedOffset: null },
+                { id: 'tokyo', city: 'Tokyo', country: 'Nhật Bản', region: 'asia', tz: 'Asia/Tokyo', fixedOffset: null },
+                { id: 'osaka', city: 'Osaka', country: 'Nhật Bản', region: 'asia', tz: 'Asia/Tokyo', fixedOffset: null },
+                { id: 'kyoto', city: 'Kyoto', country: 'Nhật Bản', region: 'asia', tz: 'Asia/Tokyo', fixedOffset: null },
+                { id: 'seoul', city: 'Seoul', country: 'Hàn Quốc', region: 'asia', tz: 'Asia/Seoul', fixedOffset: null },
+                { id: 'busan', city: 'Busan', country: 'Hàn Quốc', region: 'asia', tz: 'Asia/Seoul', fixedOffset: null },
+                { id: 'pyongyang', city: 'Bình Nhưỡng', country: 'Triều Tiên', region: 'asia', tz: 'Asia/Pyongyang', fixedOffset: null },
+                { id: 'dili', city: 'Dili', country: 'Đông Timor', region: 'asia', tz: 'Asia/Dili', fixedOffset: null },
+                { id: 'palau', city: 'Ngerulmud', country: 'Palau', region: 'asia', tz: 'Pacific/Palau', fixedOffset: null },
+                { id: 'yakutsk', city: 'Yakutsk', country: 'Nga', region: 'asia', tz: 'Asia/Yakutsk', fixedOffset: null },
+                { id: 'sydney', city: 'Sydney', country: 'Úc', region: 'asia', tz: 'Australia/Sydney', fixedOffset: null },
+                { id: 'melbourne', city: 'Melbourne', country: 'Úc', region: 'asia', tz: 'Australia/Melbourne', fixedOffset: null },
+                { id: 'brisbane', city: 'Brisbane', country: 'Úc', region: 'asia', tz: 'Australia/Brisbane', fixedOffset: null },
+                { id: 'port_moresby', city: 'Port Moresby', country: 'Papua New Guinea', region: 'asia', tz: 'Pacific/Port_Moresby', fixedOffset: null },
+                { id: 'guam', city: 'Hagåtña (Guam)', country: 'Hoa Kỳ (TBD)', region: 'asia', tz: 'Pacific/Guam', fixedOffset: null },
+                { id: 'vladivostok', city: 'Vladivostok', country: 'Nga', region: 'asia', tz: 'Asia/Vladivostok', fixedOffset: null },
+                { id: 'noumea', city: 'Nouméa', country: 'Nouvelle-Calédonie', region: 'asia', tz: 'Pacific/Noumea', fixedOffset: null },
+                { id: 'honiara', city: 'Honiara', country: 'Quần đảo Solomon', region: 'asia', tz: 'Pacific/Guadalcanal', fixedOffset: null },
+                { id: 'port_vila', city: 'Port Vila', country: 'Vanuatu', region: 'asia', tz: 'Pacific/Efate', fixedOffset: null },
+                { id: 'magadan', city: 'Magadan', country: 'Nga', region: 'asia', tz: 'Asia/Magadan', fixedOffset: null },
+                { id: 'auckland', city: 'Auckland', country: 'New Zealand', region: 'asia', tz: 'Pacific/Auckland', fixedOffset: null },
+                { id: 'wellington', city: 'Wellington', country: 'New Zealand', region: 'asia', tz: 'Pacific/Auckland', fixedOffset: null },
+                { id: 'suva', city: 'Suva', country: 'Fiji', region: 'asia', tz: 'Pacific/Fiji', fixedOffset: null },
+                { id: 'majuro', city: 'Majuro', country: 'Quần đảo Marshall', region: 'asia', tz: 'Pacific/Majuro', fixedOffset: null },
+                { id: 'funafuti', city: 'Funafuti', country: 'Tuvalu', region: 'asia', tz: 'Pacific/Funafuti', fixedOffset: null },
+                { id: 'kamchatka', city: 'Petropavlovsk-Kamchatsky', country: 'Nga', region: 'asia', tz: 'Asia/Kamchatka', fixedOffset: null },
+                { id: 'nuku_alofa', city: 'Nukuʻalofa', country: 'Tonga', region: 'asia', tz: 'Pacific/Tongatapu', fixedOffset: null },
+                { id: 'apia', city: 'Apia', country: 'Samoa', region: 'asia', tz: 'Pacific/Apia', fixedOffset: null },
+                { id: 'kiritimati', city: 'Kiritimati', country: 'Kiribati', region: 'asia', tz: 'Pacific/Kiritimati', fixedOffset: null }
+            ];
+
+            let customCityList = readStorage(KEY_CUSTOM, []);
+            if (!Array.isArray(customCityList)) customCityList = [];
+
+            let removedCityIds = readStorage(KEY_REMOVED, []);
+            if (!Array.isArray(removedCityIds)) removedCityIds = [];
+
+            let pinnedIds = readStorage(KEY_PINNED, ['hanoi', 'hcm', 'tokyo', 'london', 'new_york']);
+            if (!Array.isArray(pinnedIds)) pinnedIds = ['hanoi', 'hcm', 'tokyo'];
+
+            function getActiveWorldCities() {
+                return WORLD_DATASET.filter(c => !removedCityIds.includes(c.id)).concat(customCityList);
+            }
+
+            let currentTab = 'clock';
+            let regionFilter = 'all';
+            let todFilter = 'all';
+            let searchText = '';
+            let activeClockCityId = null;
+
+            function populatePresetSelect() {
+                const sel = document.getElementById('preset-city-select');
+                if (!sel) return;
+                const all = WORLD_DATASET.concat(customCityList);
+                sel.innerHTML = all.map(c => `<option value="${c.id}">${c.city} — ${c.country}</option>`).join('');
+            }
+
+            function setActiveClockCity(cityId) {
+                activeClockCityId = cityId;
+                const bar = document.getElementById('active-city-override-bar');
+                const titleEl = document.getElementById('override-city-title');
+                const metaEl = document.getElementById('override-city-meta');
+
+                const obj = cityId ? getActiveWorldCities().find(c => c.id === cityId) : null;
+                if (obj) {
+                    const now = new Date();
+                    const localZ = extractZoneTime(now, null, null);
+                    const targetZ = extractZoneTime(now, obj.tz, obj.fixedOffset);
+                    if (bar) bar.style.display = 'flex';
+                    if (titleEl) titleEl.textContent = `${obj.city}, ${obj.country}`;
+                    if (metaEl) metaEl.textContent = `${fmtUtcOffset(targetZ.offsetMin)} · ${fmtOffsetDiff(targetZ.offsetMin, localZ.offsetMin)}`;
+                    switchTab('clock');
+                    notify(`Đồng hồ chính: ${obj.city}`);
+                } else {
+                    activeClockCityId = null;
+                    if (bar) bar.style.display = 'none';
+                    notify('Đã về giờ địa phương');
+                }
+                renderPinnedQuickStrip(true);
+                renderWorldCards(true);
+            }
+
+            function toggleCityPin(cityId) {
+                if (pinnedIds.includes(cityId)) {
+                    pinnedIds = pinnedIds.filter(id => id !== cityId);
+                    notify('Đã bỏ ghim');
+                } else {
+                    pinnedIds = [cityId, ...pinnedIds];
+                    notify('Đã ghim thành phố');
+                }
+                writeStorage(KEY_PINNED, pinnedIds);
+                renderPinnedQuickStrip(true);
+                renderWorldCards(true);
+            }
+
+            function removeCity(cityId) {
+                const isCustom = customCityList.some(c => c.id === cityId);
+                if (isCustom) {
+                    customCityList = customCityList.filter(c => c.id !== cityId);
+                    writeStorage(KEY_CUSTOM, customCityList);
+                } else if (!removedCityIds.includes(cityId)) {
+                    removedCityIds.push(cityId);
+                    writeStorage(KEY_REMOVED, removedCityIds);
+                }
+                pinnedIds = pinnedIds.filter(id => id !== cityId);
+                writeStorage(KEY_PINNED, pinnedIds);
+                if (activeClockCityId === cityId) {
+                    activeClockCityId = null;
+                    const bar = document.getElementById('active-city-override-bar');
+                    if (bar) bar.style.display = 'none';
+                }
+                notify('Đã xóa thành phố');
+                renderPinnedQuickStrip(true);
+                renderWorldCards(true);
+            }
+
+            function resetDefaultCities() {
+                removedCityIds = [];
+                customCityList = [];
+                pinnedIds = ['hanoi', 'hcm', 'tokyo', 'london', 'new_york'];
+                activeClockCityId = null;
+                writeStorage(KEY_REMOVED, removedCityIds);
+                writeStorage(KEY_CUSTOM, customCityList);
+                writeStorage(KEY_PINNED, pinnedIds);
+                const bar = document.getElementById('active-city-override-bar');
+                if (bar) bar.style.display = 'none';
+                populatePresetSelect();
+                renderPinnedQuickStrip(true);
+                renderWorldCards(true);
+                notify('Đã đặt lại danh sách mặc định');
+            }
+
+            let lastQuickSec = -1;
+            function renderPinnedQuickStrip(force = false) {
+                const strip = document.getElementById('pinned-quick-strip');
+                if (!strip) return;
+                const now = new Date();
+                const s = now.getSeconds();
+                if (!force && s === lastQuickSec) return;
+                lastQuickSec = s;
+
+                const all = getActiveWorldCities();
+                const localZ = extractZoneTime(now, null, null);
+                const list = pinnedIds.map(id => all.find(c => c.id === id)).filter(Boolean).slice(0, 6);
+
+                if (list.length === 0) {
+                    strip.innerHTML = `<div style="font-size:12px;color:var(--ink-secondary);">Chưa có thành phố ghim.</div>`;
+                    return;
+                }
+
+                strip.innerHTML = list.map(c => {
+                    const z = extractZoneTime(now, c.tz, c.fixedOffset);
+                    const { hh, period } = fmtClockHour(z.hour);
+                    const selected = activeClockCityId === c.id;
+                    return `
+                        <button type="button" data-quick-city="${c.id}" style="text-align:left;padding:9px 10px;border-radius:12px;border:1px solid ${selected ? 'var(--accent)' : 'var(--hairline)'};background-color:${selected ? 'var(--accent-soft)' : 'var(--bg-control)'};color:var(--ink-primary);cursor:pointer;">
+                            <div style="display:flex;align-items:center;justify-content:space-between;gap:4px;font-size:11px;font-weight:600;">
+                                <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${c.city}</span>
+                                <span>${z.hour >= 6 && z.hour < 18 ? '☀' : '☾'}</span>
+                            </div>
+                            <div class="font-tabular" style="font-size:12px;font-weight:700;margin-top:3px;">
+                                ${hh}:${String(z.minute).padStart(2, '0')}${period ? ` <span style="font-size:9px;color:var(--accent);">${period}</span>` : ''}
+                            </div>
+                            <div class="font-tabular" style="font-size:10px;color:var(--ink-secondary);margin-top:1px;">
+                                ${fmtOffsetDiff(z.offsetMin, localZ.offsetMin)}
+                            </div>
+                        </button>
+                    `;
+                }).join('');
+            }
+
+            let lastWorldSec = -1;
+            function renderWorldCards(force = false) {
+                const grid = document.getElementById('world-cards-grid');
+                const emptyBox = document.getElementById('world-no-results');
+                const badge = document.getElementById('world-visible-badge');
+                const tabCount = document.getElementById('world-tab-count');
+                if (!grid) return;
+
+                const all = getActiveWorldCities();
+                if (tabCount) tabCount.textContent = String(all.length);
+
+                const now = new Date();
+                const s = now.getSeconds();
+                if (!force && s === lastWorldSec) return;
+                lastWorldSec = s;
+
+                const localZ = extractZoneTime(now, null, null);
+                const q = searchText.trim().toLowerCase();
+
+                let entries = all.map(cityObj => {
+                    const z = extractZoneTime(now, cityObj.tz, cityObj.fixedOffset);
+                    const utcLabel = fmtUtcOffset(z.offsetMin);
+                    const isDay = z.hour >= 6 && z.hour < 18;
+                    const pinned = pinnedIds.includes(cityObj.id);
+                    return { cityObj, z, utcLabel, isDay, pinned };
+                });
+
+                if (regionFilter !== 'all') {
+                    entries = entries.filter(e => e.cityObj.region === regionFilter);
+                }
+                if (todFilter === 'day') {
+                    entries = entries.filter(e => e.isDay);
+                } else if (todFilter === 'night') {
+                    entries = entries.filter(e => !e.isDay);
+                }
+                if (q) {
+                    entries = entries.filter(e =>
+                        e.cityObj.city.toLowerCase().includes(q) ||
+                        e.cityObj.country.toLowerCase().includes(q) ||
+                        e.utcLabel.toLowerCase().includes(q)
+                    );
+                }
+
+                entries.sort((a, b) => {
+                    if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+                    return a.z.offsetMin - b.z.offsetMin || a.cityObj.city.localeCompare(b.cityObj.city, 'vi');
+                });
+
+                if (badge) badge.textContent = `${entries.length} địa điểm`;
+
+                if (entries.length === 0) {
+                    grid.innerHTML = '';
+                    if (emptyBox) emptyBox.style.display = 'block';
+                    return;
+                }
+                if (emptyBox) emptyBox.style.display = 'none';
+
+                grid.innerHTML = entries.map(({ cityObj, z, utcLabel, isDay, pinned }) => {
+                    const { hh, period } = fmtClockHour(z.hour);
+                    const diffStr = fmtOffsetDiff(z.offsetMin, localZ.offsetMin);
+                    const relDay = z.isoDay === localZ.isoDay ? 'Hôm nay' : (z.isoDay > localZ.isoDay ? 'Ngày mai' : 'Hôm qua');
+                    const active = activeClockCityId === cityObj.id;
+                    const hourDeg = ((z.hour % 12) + z.minute / 60) * 30;
+                    const minDeg = (z.minute + z.second / 60) * 6;
+
+                    return `
+                        <article data-world-card="${cityObj.id}" style="border-radius:16px;padding:12px 14px;border:1px solid ${active ? 'var(--accent)' : 'var(--hairline)'};background-color:${active ? 'var(--accent-soft)' : 'var(--bg-control)'};cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;gap:10px;">
+                            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+                                <div style="min-width:0;">
+                                    <div style="display:flex;align-items:center;gap:6px;">
+                                        <span style="font-size:11px;">${isDay ? '☀' : '☾'}</span>
+                                        <strong style="font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${cityObj.city}</strong>
+                                    </div>
+                                    <div style="font-size:11px;color:var(--ink-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px;">
+                                        ${cityObj.country} · <span style="color:${relDay === 'Hôm nay' ? 'var(--ink-secondary)' : 'var(--accent)'};font-weight:${relDay === 'Hôm nay' ? '400' : '600'};">${relDay}</span>
+                                    </div>
+                                </div>
+
+                                <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
+                                    <button type="button" data-pin-id="${cityObj.id}" title="Ghim" style="width:24px;height:24px;border-radius:999px;border:none;background:${pinned ? 'var(--accent-soft)' : 'transparent'};color:${pinned ? 'var(--accent)' : 'var(--ink-secondary)'};cursor:pointer;font-size:12px;">★</button>
+                                    <button type="button" data-remove-id="${cityObj.id}" title="Xóa" style="width:24px;height:24px;border-radius:999px;border:none;background:transparent;color:var(--ink-secondary);cursor:pointer;font-size:11px;">✕</button>
+                                </div>
+                            </div>
+
+                            <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:8px;padding-top:8px;border-top:1px solid var(--hairline);">
+                                <div style="display:flex;align-items:center;gap:8px;">
+                                    <div style="position:relative;width:26px;height:26px;border-radius:999px;border:1px solid var(--hairline);background-color:var(--bg-card);flex-shrink:0;">
+                                        <span style="position:absolute;left:50%;bottom:50%;width:1.5px;height:7px;margin-left:-0.75px;border-radius:999px;background-color:var(--ink-primary);transform-origin:50% 100%;transform:rotate(${hourDeg}deg);"></span>
+                                        <span style="position:absolute;left:50%;bottom:50%;width:1px;height:10px;margin-left:-0.5px;border-radius:999px;background-color:var(--accent);transform-origin:50% 100%;transform:rotate(${minDeg}deg);"></span>
+                                        <span style="position:absolute;left:50%;top:50%;width:4px;height:4px;margin:-2px 0 0 -2px;border-radius:999px;background-color:var(--accent);"></span>
+                                    </div>
+                                    <div>
+                                        <div class="font-tabular" style="font-size:11px;font-weight:700;">${utcLabel}</div>
+                                        <div class="font-tabular" style="font-size:10px;color:var(--ink-secondary);">${diffStr}</div>
+                                    </div>
+                                </div>
+
+                                <div style="text-align:right;">
+                                    <div class="font-tabular" style="font-size:15px;font-weight:700;line-height:1.1;">
+                                        ${hh}:${String(z.minute).padStart(2, '0')}<span style="font-size:11px;color:var(--accent);margin-left:2px;">${String(z.second).padStart(2, '0')}</span>
+                                    </div>
+                                    <div class="font-tabular" style="font-size:10px;color:${period ? 'var(--accent)' : 'var(--ink-secondary)'};font-weight:${period ? '700' : '500'};margin-top:2px;">
+                                        ${period || '24H'}
+                                    </div>
+                                </div>
+                            </div>
+                        </article>
+                    `;
+                }).join('');
+            }
+
+            // =========================================================================
+            // ANALOG DIAL & MAIN CLOCK RAF LOOP
+            // =========================================================================
+            function buildAnalogTicks() {
+                const layer = document.getElementById('analog-ticks-layer');
+                if (!layer) return;
+                const frag = document.createDocumentFragment();
+                for (let i = 0; i < 60; i++) {
+                    const quarter = i % 15 === 0;
+                    const major = i % 5 === 0;
+                    const holder = document.createElement('div');
+                    holder.style.cssText = `position:absolute;inset:0;display:flex;justify-content:center;pointer-events:none;transform:rotate(${i * 6}deg);`;
+
+                    const tick = document.createElement('span');
+                    if (quarter) {
+                        tick.style.cssText = 'margin-top:8px;width:2px;height:12px;border-radius:999px;background-color:var(--accent);';
+                    } else if (major) {
+                        tick.style.cssText = 'margin-top:8px;width:1.5px;height:10px;border-radius:999px;background-color:var(--ink-primary);opacity:0.75;';
+                    } else {
+                        tick.style.cssText = 'margin-top:10px;width:1px;height:6px;border-radius:999px;background-color:var(--ink-primary);opacity:0.22;';
+                    }
+                    holder.appendChild(tick);
+                    frag.appendChild(holder);
+                }
+                layer.innerHTML = '';
+                layer.appendChild(frag);
+            }
+
+            let lastDateSig = '';
+            function mainClockLoop() {
+                try {
+                    const now = new Date();
+                    const ms = now.getMilliseconds();
+                    const cityObj = activeClockCityId ? getActiveWorldCities().find(c => c.id === activeClockCityId) : null;
+                    const z = extractZoneTime(now, cityObj ? cityObj.tz : null, cityObj ? cityObj.fixedOffset : null);
+
+                    const secSmooth = z.second + ms / 1000;
+                    const minSmooth = z.minute + secSmooth / 60;
+                    const hrSmooth = (z.hour % 12) + minSmooth / 60;
+
+                    if (currentTab === 'clock') {
+                        const secHand = document.getElementById('analog-second-hand');
+                        const minHand = document.getElementById('analog-minute-hand');
+                        const hrHand = document.getElementById('analog-hour-hand');
+                        if (secHand) secHand.style.transform = `rotate(${secSmooth * 6}deg)`;
+                        if (minHand) minHand.style.transform = `rotate(${minSmooth * 6}deg)`;
+                        if (hrHand) hrHand.style.transform = `rotate(${hrSmooth * 30}deg)`;
+
+                        const { hh, period } = fmtClockHour(z.hour);
+                        const hhEl = document.getElementById('digital-hh');
+                        const mmEl = document.getElementById('digital-mm');
+                        const ssEl = document.getElementById('digital-ss');
+                        const periodEl = document.getElementById('digital-period');
+
+                        const mmStr = String(z.minute).padStart(2, '0');
+                        const ssStr = String(z.second).padStart(2, '0');
+                        if (hhEl && hhEl.textContent !== hh) hhEl.textContent = hh;
+                        if (mmEl && mmEl.textContent !== mmStr) mmEl.textContent = mmStr;
+                        if (ssEl && ssEl.textContent !== ssStr) ssEl.textContent = ssStr;
+
+                        if (periodEl) {
+                            if (period) {
+                                periodEl.textContent = period;
+                                periodEl.style.display = 'inline-block';
+                            } else {
+                                periodEl.style.display = 'none';
+                            }
+                        }
+
+                        const elapsed = z.hour * 3600 + z.minute * 60 + secSmooth;
+                        const pct = ((elapsed / 86400) * 100).toFixed(1);
+                        const barEl = document.getElementById('clock-day-bar');
+                        const pctEl = document.getElementById('clock-day-percent');
+                        if (barEl) barEl.style.width = `${pct}%`;
+                        if (pctEl) pctEl.textContent = `${pct}% ngày`;
+
+                        renderPinnedQuickStrip();
+                    } else if (currentTab === 'world') {
+                        renderWorldCards();
+                    }
+
+                    const sig = `${z.isoDay}-${cityObj ? cityObj.id : 'local'}`;
+                    if (sig !== lastDateSig) {
+                        lastDateSig = sig;
+                        const dd = String(z.day).padStart(2, '0');
+                        const mm = String(z.month).padStart(2, '0');
+                        const utcStr = fmtUtcOffset(z.offsetMin);
+                        const lunar = convertSolarToLunar(z.day, z.month, z.year, 7);
+
+                        const wkEl = document.getElementById('clock-weekday');
+                        const doyEl = document.getElementById('clock-day-of-year');
+                        const solarEl = document.getElementById('clock-solar-date');
+                        const lunarEl = document.getElementById('clock-lunar-date');
+                        const tzBadge = document.getElementById('header-tz-badge');
+                        const tzSummary = document.getElementById('clock-tz-summary');
+
+                        if (wkEl) wkEl.textContent = VI_WEEKDAYS[z.weekday] || '';
+                        if (doyEl) doyEl.textContent = `Ngày ${z.dayOfYear}/${z.daysInYear}`;
+                        if (solarEl) solarEl.textContent = `Ngày ${dd} tháng ${mm} năm ${z.year}`;
+                        if (lunarEl) {
+                            lunarEl.textContent = `Âm lịch: Ngày ${String(lunar.day).padStart(2, '0')} tháng ${String(lunar.month).padStart(2, '0')}${lunar.leap ? ' (Nhuận)' : ''} năm ${lunar.canChi}`;
+                        }
+                        if (tzBadge) tzBadge.textContent = cityObj ? `${utcStr} · ${cityObj.city}` : utcStr;
+                        if (tzSummary) {
+                            if (cityObj) {
+                                tzSummary.textContent = `${cityObj.city}, ${cityObj.country} (${utcStr})`;
+                            } else {
+                                let zoneName = 'Múi giờ thiết bị';
+                                try {
+                                    const resTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                                    if (resTz) zoneName = resTz;
+                                } catch (_) {}
+                                tzSummary.textContent = `${zoneName} (${utcStr})`;
+                            }
+                        }
+                    }
+                } catch (_) {}
+
+                window.requestAnimationFrame(mainClockLoop);
+            }
+
+            // =========================================================================
+            // STOPWATCH (INDEPENDENT REQUESTANIMATIONFRAME + PERFORMANCE.NOW)
+            // =========================================================================
+            let swRunning = false;
+            let swStartPerf = 0;
+            let swAccumulatedMs = 0;
+            let swRafId = null;
+            let swLaps = [];
+            let swPrevLapMs = 0;
+
+            function formatStopwatchParts(ms) {
+                const safe = Math.max(0, ms);
+                const totalSec = Math.floor(safe / 1000);
+                const hrs = Math.floor(totalSec / 3600);
+                const mins = Math.floor((totalSec % 3600) / 60);
+                const secs = totalSec % 60;
+                const cs = Math.floor((safe % 1000) / 10);
+                return {
+                    h: String(hrs).padStart(2, '0'),
+                    m: String(mins).padStart(2, '0'),
+                    s: String(secs).padStart(2, '0'),
+                    c: String(cs).padStart(2, '0')
+                };
+            }
+
+            function formatLapStamp(ms) {
+                const p = formatStopwatchParts(ms);
+                return Number(p.h) > 0 ? `${p.h}:${p.m}:${p.s}.${p.c}` : `${p.m}:${p.s}.${p.c}`;
+            }
+
+            function renderStopwatchDisplay(ms) {
+                const p = formatStopwatchParts(ms);
+                const hEl = document.getElementById('sw-readout-hr');
+                const mEl = document.getElementById('sw-readout-min');
+                const sEl = document.getElementById('sw-readout-sec');
+                const cEl = document.getElementById('sw-readout-cs');
+                if (hEl && hEl.textContent !== p.h) hEl.textContent = p.h;
+                if (mEl && mEl.textContent !== p.m) mEl.textContent = p.m;
+                if (sEl && sEl.textContent !== p.s) sEl.textContent = p.s;
+                if (cEl && cEl.textContent !== p.c) cEl.textContent = p.c;
+            }
+
+            function readStopwatchElapsedMs() {
+                if (!swRunning) return swAccumulatedMs;
+                return swAccumulatedMs + Math.max(0, performance.now() - swStartPerf);
+            }
+
+            function stopwatchRafTick() {
+                if (!swRunning) {
+                    swRafId = null;
+                    return;
+                }
+                renderStopwatchDisplay(readStopwatchElapsedMs());
+                swRafId = window.requestAnimationFrame(stopwatchRafTick);
+            }
+
+            function toggleStopwatch() {
+                const btn = document.getElementById('btn-sw-start-pause');
+                const lapBtn = document.getElementById('btn-sw-record-lap');
+                if (!swRunning) {
+                    swRunning = true;
+                    swStartPerf = performance.now();
+                    if (btn) btn.textContent = 'Tạm dừng';
+                    if (lapBtn) lapBtn.disabled = false;
+                    if (swRafId === null) swRafId = window.requestAnimationFrame(stopwatchRafTick);
+                } else {
+                    swAccumulatedMs = readStopwatchElapsedMs();
+                    swRunning = false;
+                    if (swRafId !== null) {
+                        window.cancelAnimationFrame(swRafId);
+                        swRafId = null;
+                    }
+                    renderStopwatchDisplay(swAccumulatedMs);
+                    if (btn) btn.textContent = 'Tiếp tục';
+                    if (lapBtn) lapBtn.disabled = true;
+                }
+            }
+
+            function renderStopwatchLaps() {
+                const box = document.getElementById('sw-laps-box');
+                const rows = document.getElementById('sw-laps-rows');
+                if (!box || !rows) return;
+                if (swLaps.length === 0) {
+                    box.style.display = 'none';
+                    rows.innerHTML = '';
+                    return;
+                }
+                box.style.display = 'block';
+
+                let fastestMs = Infinity;
+                let slowestMs = -Infinity;
+                if (swLaps.length >= 2) {
+                    for (const lap of swLaps) {
+                        if (lap.splitMs < fastestMs) fastestMs = lap.splitMs;
+                        if (lap.splitMs > slowestMs) slowestMs = lap.splitMs;
+                    }
+                }
+
+                rows.innerHTML = swLaps.map(lap => {
+                    let badge = '';
+                    let color = 'var(--ink-primary)';
+                    if (swLaps.length >= 2 && lap.splitMs === fastestMs) {
+                        color = 'var(--sage)';
+                        badge = ' <span style="font-size:10px;font-weight:700;">(Nhanh nhất)</span>';
+                    } else if (swLaps.length >= 2 && lap.splitMs === slowestMs) {
+                        color = 'var(--accent)';
+                        badge = ' <span style="font-size:10px;font-weight:700;">(Chậm nhất)</span>';
+                    }
+                    return `
+                        <div style="display:grid;grid-template-columns:1.2fr 1fr 1fr;padding:9px 14px;border-top:1px solid var(--hairline);font-size:12px;">
+                            <span class="font-tabular" style="font-weight:600;">Vòng #${String(lap.num).padStart(2, '0')}</span>
+                            <span class="font-tabular" style="text-align:center;font-weight:600;color:${color};">${formatLapStamp(lap.splitMs)}${badge}</span>
+                            <span class="font-tabular" style="text-align:right;color:var(--ink-secondary);">${formatLapStamp(lap.totalMs)}</span>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            function recordStopwatchLap() {
+                const totalMs = readStopwatchElapsedMs();
+                const splitMs = Math.max(0, totalMs - swPrevLapMs);
+                swPrevLapMs = totalMs;
+                swLaps.unshift({ num: swLaps.length + 1, splitMs, totalMs });
+                renderStopwatchLaps();
+            }
+
+            function resetStopwatch() {
+                swRunning = false;
+                if (swRafId !== null) {
+                    window.cancelAnimationFrame(swRafId);
+                    swRafId = null;
+                }
+                swAccumulatedMs = 0;
+                swPrevLapMs = 0;
+                swLaps = [];
+                renderStopwatchDisplay(0);
+                renderStopwatchLaps();
+                const btn = document.getElementById('btn-sw-start-pause');
+                const lapBtn = document.getElementById('btn-sw-record-lap');
+                if (btn) btn.textContent = 'Bắt đầu';
+                if (lapBtn) lapBtn.disabled = true;
+            }
+
+            // =========================================================================
+            // COUNTDOWN TIMER (INDEPENDENT REQUESTANIMATIONFRAME + RING)
+            // =========================================================================
+            const TIMER_RING_CIRCUMFERENCE = 2 * Math.PI * 92;
+            let timerTotalSec = 1500;
+            let timerRemainingMs = 1500 * 1000;
+            let timerRunning = false;
+            let timerEndPerf = 0;
+            let timerRafId = null;
+
+            function readTimerRemainingMs() {
+                if (!timerRunning) return timerRemainingMs;
+                return Math.max(0, timerEndPerf - performance.now());
+            }
+
+            function renderTimerDisplay() {
+                const remMs = readTimerRemainingMs();
+                const remSec = Math.ceil(remMs / 1000);
+                const h = Math.floor(remSec / 3600);
+                const m = Math.floor((remSec % 3600) / 60);
+                const s = remSec % 60;
+
+                const txt = h > 0
+                    ? `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+                    : `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+
+                const textEl = document.getElementById('timer-countdown-text');
+                if (textEl && textEl.textContent !== txt) textEl.textContent = txt;
+
+                const ringEl = document.getElementById('timer-progress-ring');
+                if (ringEl) {
+                    const denom = Math.max(1, timerTotalSec * 1000);
+                    const ratio = Math.max(0, Math.min(1, remMs / denom));
+                    ringEl.style.strokeDashoffset = String(TIMER_RING_CIRCUMFERENCE * (1 - ratio));
+                }
+            }
+
+            function timerRafTick() {
+                if (!timerRunning) {
+                    timerRafId = null;
+                    return;
+                }
+                const rem = readTimerRemainingMs();
+                renderTimerDisplay();
+                if (rem <= 0) {
+                    timerRunning = false;
+                    timerRemainingMs = 0;
+                    if (timerRafId !== null) {
+                        window.cancelAnimationFrame(timerRafId);
+                        timerRafId = null;
+                    }
+                    renderTimerDisplay();
+                    const btn = document.getElementById('btn-timer-start-pause');
+                    const stateEl = document.getElementById('timer-state-label');
+                    if (btn) btn.textContent = 'Bắt đầu';
+                    if (stateEl) {
+                        stateEl.textContent = 'Hoàn thành!';
+                        stateEl.style.color = 'var(--accent)';
+                    }
+                    notify('Hẹn giờ đã kết thúc!');
+                    return;
+                }
+                timerRafId = window.requestAnimationFrame(timerRafTick);
+            }
+
+            function setTimerDurationSec(sec) {
+                timerRunning = false;
+                if (timerRafId !== null) {
+                    window.cancelAnimationFrame(timerRafId);
+                    timerRafId = null;
+                }
+                const safeSec = Math.max(1, Math.min(359999, sec));
+                timerTotalSec = safeSec;
+                timerRemainingMs = safeSec * 1000;
+                const btn = document.getElementById('btn-timer-start-pause');
+                const stateEl = document.getElementById('timer-state-label');
+                if (btn) btn.textContent = 'Bắt đầu';
+                if (stateEl) {
+                    stateEl.textContent = 'Sẵn sàng';
+                    stateEl.style.color = 'var(--ink-secondary)';
+                }
+                renderTimerDisplay();
+            }
+
+            function toggleTimer() {
+                const btn = document.getElementById('btn-timer-start-pause');
+                const stateEl = document.getElementById('timer-state-label');
+                if (!timerRunning) {
+                    if (timerRemainingMs <= 0) timerRemainingMs = timerTotalSec * 1000;
+                    timerRunning = true;
+                    timerEndPerf = performance.now() + timerRemainingMs;
+                    if (btn) btn.textContent = 'Tạm dừng';
+                    if (stateEl) {
+                        stateEl.textContent = 'Đang chạy';
+                        stateEl.style.color = 'var(--sage)';
+                    }
+                    if (timerRafId === null) timerRafId = window.requestAnimationFrame(timerRafTick);
+                } else {
+                    timerRemainingMs = readTimerRemainingMs();
+                    timerRunning = false;
+                    if (timerRafId !== null) {
+                        window.cancelAnimationFrame(timerRafId);
+                        timerRafId = null;
+                    }
+                    renderTimerDisplay();
+                    if (btn) btn.textContent = 'Tiếp tục';
+                    if (stateEl) {
+                        stateEl.textContent = 'Tạm dừng';
+                        stateEl.style.color = 'var(--ink-secondary)';
+                    }
+                }
+            }
+
+            // =========================================================================
+            // TAB NAVIGATION & EVENT LISTENERS
+            // =========================================================================
+            function switchTab(target) {
+                try {
+                    currentTab = target;
+                    document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+                        const isMatch = btn.getAttribute('data-tab-target') === target;
+                        btn.setAttribute('aria-selected', isMatch ? 'true' : 'false');
+                    });
+                    document.querySelectorAll('.tab-section').forEach(sec => {
+                        sec.classList.toggle('active', sec.id === `tab-panel-${target}`);
+                    });
+                    if (target === 'world') {
+                        renderWorldCards(true);
+                    } else if (target === 'clock') {
+                        renderPinnedQuickStrip(true);
+                    }
+                } catch (_) {}
+            }
+
+            function wireEvents() {
+                try {
+                    // Theme button
+                    const themeBtn = document.getElementById('btn-toggle-theme');
+                    if (themeBtn) {
+                        themeBtn.addEventListener('click', () => {
+                            try { applyTheme(!isLightTheme); } catch (_) {}
+                        });
+                    }
+
+                    // 24H / 12H toggle
+                    const hourBtn = document.getElementById('btn-toggle-hour-mode');
+                    if (hourBtn) {
+                        hourBtn.addEventListener('click', () => {
+                            try {
+                                is24HourFormat = !is24HourFormat;
+                                const lbl = document.getElementById('hour-mode-label');
+                                if (lbl) lbl.textContent = is24HourFormat ? 'Hệ 24H' : 'Hệ 12H';
+                                renderPinnedQuickStrip(true);
+                                renderWorldCards(true);
+                            } catch (_) {}
+                        });
+                    }
+
+                    // Nhạc VN panel controls
+                    const panelEl = document.getElementById('inline-music-panel');
+                    const togglePanelBtn = document.getElementById('btn-toggle-music-panel');
+                    const closePanelBtn = document.getElementById('btn-music-close-panel');
+                    const tracksGrid = document.getElementById('music-tracks-container');
+
+                    if (togglePanelBtn && panelEl) {
+                        togglePanelBtn.addEventListener('click', () => {
+                            try {
+                                musicPanelOpen = !musicPanelOpen;
+                                panelEl.classList.toggle('open', musicPanelOpen);
+                                togglePanelBtn.setAttribute('aria-expanded', musicPanelOpen ? 'true' : 'false');
+                                renderMusicPanelUI();
+                            } catch (_) {}
+                        });
+                    }
+
+                    if (closePanelBtn && panelEl && togglePanelBtn) {
+                        closePanelBtn.addEventListener('click', () => {
+                            try {
+                                musicPanelOpen = false;
+                                panelEl.classList.remove('open');
+                                togglePanelBtn.setAttribute('aria-expanded', 'false');
+                            } catch (_) {}
+                        });
+                    }
+
+                    if (tracksGrid) {
+                        tracksGrid.addEventListener('click', (e) => {
+                            try {
+                                const btn = e.target.closest('[data-select-track]');
+                                if (!btn) return;
+                                const idx = parseInt(btn.getAttribute('data-select-track'), 10);
+                                if (!Number.isNaN(idx) && VN_TRACKS[idx]) {
+                                    selectedTrackIdx = idx;
+                                    renderMusicPanelUI();
+                                }
+                            } catch (_) {}
+                        });
+                    }
+
+                    // 5-Tab navigation
+                    document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            const target = btn.getAttribute('data-tab-target');
+                            if (target) switchTab(target);
+                        });
+                    });
+
+                    const goWorldBtn = document.getElementById('btn-go-world-tab');
+                    if (goWorldBtn) {
+                        goWorldBtn.addEventListener('click', () => switchTab('world'));
+                    }
+
+                    const retLocalBtn = document.getElementById('btn-return-local-time');
+                    if (retLocalBtn) {
+                        retLocalBtn.addEventListener('click', () => setActiveClockCity(null));
+                    }
+
+                    // Quick pinned cities strip
+                    const quickStrip = document.getElementById('pinned-quick-strip');
+                    if (quickStrip) {
+                        quickStrip.addEventListener('click', (e) => {
+                            try {
+                                const btn = e.target.closest('[data-quick-city]');
+                                if (!btn) return;
+                                const id = btn.getAttribute('data-quick-city');
+                                setActiveClockCity(activeClockCityId === id ? null : id);
+                            } catch (_) {}
+                        });
+                    }
+
+                    // World cards interactions
+                    const worldGrid = document.getElementById('world-cards-grid');
+                    if (worldGrid) {
+                        worldGrid.addEventListener('click', (e) => {
+                            try {
+                                const remBtn = e.target.closest('[data-remove-id]');
+                                if (remBtn) {
+                                    e.stopPropagation();
+                                    removeCity(remBtn.getAttribute('data-remove-id'));
+                                    return;
+                                }
+                                const pinBtn = e.target.closest('[data-pin-id]');
+                                if (pinBtn) {
+                                    e.stopPropagation();
+                                    toggleCityPin(pinBtn.getAttribute('data-pin-id'));
+                                    return;
+                                }
+                                const card = e.target.closest('[data-world-card]');
+                                if (card) {
+                                    setActiveClockCity(card.getAttribute('data-world-card'));
+                                }
+                            } catch (_) {}
+                        });
+                    }
+
+                    // Add city panel & forms
+                    const addPanel = document.getElementById('add-city-panel');
+                    const toggleAddBtn = document.getElementById('btn-toggle-add-city');
+                    if (toggleAddBtn && addPanel) {
+                        toggleAddBtn.addEventListener('click', () => {
+                            try {
+                                const visible = addPanel.style.display !== 'none';
+                                addPanel.style.display = visible ? 'none' : 'block';
+                            } catch (_) {}
+                        });
+                    }
+
+                    const addPresetBtn = document.getElementById('btn-add-preset-city');
+                    const presetSelect = document.getElementById('preset-city-select');
+                    if (addPresetBtn && presetSelect) {
+                        addPresetBtn.addEventListener('click', () => {
+                            try {
+                                const id = presetSelect.value;
+                                if (!id) return;
+                                if (removedCityIds.includes(id)) {
+                                    removedCityIds = removedCityIds.filter(x => x !== id);
+                                    writeStorage(KEY_REMOVED, removedCityIds);
+                                }
+                                if (!pinnedIds.includes(id)) {
+                                    pinnedIds = [id, ...pinnedIds];
+                                    writeStorage(KEY_PINNED, pinnedIds);
+                                }
+                                const found = WORLD_DATASET.concat(customCityList).find(c => c.id === id);
+                                notify(`Đã thêm ${found ? found.city : 'thành phố'}`);
+                                renderPinnedQuickStrip(true);
+                                renderWorldCards(true);
+                            } catch (_) {}
+                        });
+                    }
+
+                    const customForm = document.getElementById('custom-city-form');
+                    if (customForm) {
+                        customForm.addEventListener('submit', (e) => {
+                            try {
+                                e.preventDefault();
+                                const nameEl = document.getElementById('new-city-name');
+                                const countryEl = document.getElementById('new-city-country');
+                                const offsetEl = document.getElementById('new-city-offset');
+                                const regionEl = document.getElementById('new-city-region');
+                                if (!nameEl || !countryEl || !offsetEl || !regionEl) return;
+
+                                const cityName = nameEl.value.trim();
+                                const countryName = countryEl.value.trim();
+                                const offsetVal = parseFloat(offsetEl.value);
+                                if (!cityName || !countryName || Number.isNaN(offsetVal)) return;
+
+                                const clamped = Math.max(-12, Math.min(14, offsetVal));
+                                const entry = {
+                                    id: `custom_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+                                    city: cityName,
+                                    country: countryName,
+                                    region: regionEl.value || 'asia',
+                                    tz: null,
+                                    fixedOffset: Math.round(clamped * 60)
+                                };
+                                customCityList.unshift(entry);
+                                pinnedIds.unshift(entry.id);
+                                writeStorage(KEY_CUSTOM, customCityList);
+                                writeStorage(KEY_PINNED, pinnedIds);
+                                customForm.reset();
+                                populatePresetSelect();
+                                notify(`Đã thêm ${cityName}`);
+                                renderPinnedQuickStrip(true);
+                                renderWorldCards(true);
+                            } catch (_) {}
+                        });
+                    }
+
+                    const resetCitiesBtn = document.getElementById('btn-reset-default-cities');
+                    if (resetCitiesBtn) {
+                        resetCitiesBtn.addEventListener('click', () => {
+                            try { resetDefaultCities(); } catch (_) {}
+                        });
+                    }
+
+                    // World filters
+                    const searchInput = document.getElementById('world-search-box');
+                    if (searchInput) {
+                        searchInput.addEventListener('input', (e) => {
+                            searchText = e.target.value || '';
+                            renderWorldCards(true);
+                        });
+                    }
+
+                    document.querySelectorAll('.region-filter-btn').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            try {
+                                regionFilter = btn.getAttribute('data-region-filter') || 'all';
+                                document.querySelectorAll('.region-filter-btn').forEach(b => {
+                                    b.classList.toggle('btn-terracotta', b === btn);
+                                });
+                                renderWorldCards(true);
+                            } catch (_) {}
+                        });
+                    });
+
+                    const todSelect = document.getElementById('world-tod-filter');
+                    if (todSelect) {
+                        todSelect.addEventListener('change', (e) => {
+                            todFilter = e.target.value || 'all';
+                            renderWorldCards(true);
+                        });
+                    }
+
+                    const clearFiltersBtn = document.getElementById('btn-clear-world-filters');
+                    if (clearFiltersBtn) {
+                        clearFiltersBtn.addEventListener('click', () => {
+                            try {
+                                regionFilter = 'all';
+                                todFilter = 'all';
+                                searchText = '';
+                                if (searchInput) searchInput.value = '';
+                                if (todSelect) todSelect.value = 'all';
+                                document.querySelectorAll('.region-filter-btn').forEach(b => {
+                                    b.classList.toggle('btn-terracotta', b.getAttribute('data-region-filter') === 'all');
+                                });
+                                renderWorldCards(true);
+                            } catch (_) {}
+                        });
+                    }
+
+                    // Stopwatch buttons
+                    const swStartBtn = document.getElementById('btn-sw-start-pause');
+                    const swLapBtn = document.getElementById('btn-sw-record-lap');
+                    const swResetBtn = document.getElementById('btn-sw-reset-all');
+                    if (swStartBtn) swStartBtn.addEventListener('click', () => { try { toggleStopwatch(); } catch (_) {} });
+                    if (swLapBtn) swLapBtn.addEventListener('click', () => { try { recordStopwatchLap(); } catch (_) {} });
+                    if (swResetBtn) swResetBtn.addEventListener('click', () => { try { resetStopwatch(); } catch (_) {} });
+
+                    // Timer presets & controls
+                    document.querySelectorAll('.timer-preset-btn').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            try {
+                                const sec = parseInt(btn.getAttribute('data-timer-sec'), 10);
+                                if (!Number.isNaN(sec)) setTimerDurationSec(sec);
+                            } catch (_) {}
+                        });
+                    });
+
+                    const applyTimerBtn = document.getElementById('btn-apply-timer-inputs');
+                    if (applyTimerBtn) {
+                        applyTimerBtn.addEventListener('click', () => {
+                            try {
+                                const hr = Math.max(0, parseInt(document.getElementById('input-timer-hr').value, 10) || 0);
+                                const mn = Math.max(0, parseInt(document.getElementById('input-timer-min').value, 10) || 0);
+                                const sc = Math.max(0, Math.min(59, parseInt(document.getElementById('input-timer-sec').value, 10) || 0));
+                                setTimerDurationSec(hr * 3600 + mn * 60 + sc);
+                            } catch (_) {}
+                        });
+                    }
+
+                    const timerStartBtn = document.getElementById('btn-timer-start-pause');
+                    const timerResetBtn = document.getElementById('btn-timer-reset');
+                    if (timerStartBtn) timerStartBtn.addEventListener('click', () => { try { toggleTimer(); } catch (_) {} });
+                    if (timerResetBtn) timerResetBtn.addEventListener('click', () => { try { setTimerDurationSec(timerTotalSec); } catch (_) {} });
+
+                    // One-click copy buttons in Thông tin
+                    document.querySelectorAll('.studio-copy-btn').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            try {
+                                const val = btn.getAttribute('data-copy-value') || '';
+                                if (!val) return;
+                                let copied = false;
+                                try {
+                                    const ta = document.createElement('textarea');
+                                    ta.value = val;
+                                    ta.setAttribute('readonly', '');
+                                    ta.style.position = 'fixed';
+                                    ta.style.opacity = '0';
+                                    document.body.appendChild(ta);
+                                    ta.select();
+                                    copied = document.execCommand('copy');
+                                    document.body.removeChild(ta);
+                                } catch (_) {}
+                                if (!copied && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+                                    navigator.clipboard.writeText(val).catch(() => {});
+                                }
+                                const origText = btn.textContent;
+                                btn.textContent = 'Đã sao chép';
+                                window.setTimeout(() => {
+                                    btn.textContent = origText;
+                                }, 1600);
+                                notify(`Đã sao chép: ${val}`);
+                            } catch (_) {
+                                notify('Không thể sao chép');
+                            }
+                        });
+                    });
+                } catch (_) {}
+            }
+
+            // Initialize application
+            const savedTheme = readStorage(KEY_THEME, 'dark');
+            applyTheme(savedTheme === 'light');
+            buildAnalogTicks();
+            populatePresetSelect();
+            renderMusicPanelUI();
+            renderStopwatchDisplay(0);
+            renderTimerDisplay();
+            wireEvents();
+            renderPinnedQuickStrip(true);
+            renderWorldCards(true);
+            window.requestAnimationFrame(mainClockLoop);
+        })();
+    </script>
 </body>
 </html>
