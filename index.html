@@ -86,6 +86,13 @@
       cursor: pointer;
     }
 
+    .top-logout-mini:disabled {
+      background: #f3f4f6;
+      border-color: #d1d5db;
+      color: #9ca3af;
+      cursor: not-allowed;
+    }
+
     .brand-header {
       display: flex;
       flex-direction: column;
@@ -257,6 +264,26 @@
       color: white;
     }
 
+    .btn-danger {
+      background-color: #ef4444;
+      color: white;
+    }
+
+    .btn-neutral {
+      background-color: #e5e7eb;
+      color: #333333;
+    }
+
+    .confirm-actions {
+      display: flex;
+      width: 100%;
+      gap: 10px;
+    }
+
+    .confirm-actions .btn {
+      flex: 1;
+    }
+
     .hidden {
       display: none !important;
     }
@@ -290,7 +317,7 @@
       <button type="button" class="top-pill-btn" id="topAuthBtn" onclick="openAuthCard()">
         👤 Đăng nhập / Đăng ký
       </button>
-      <button type="button" class="top-logout-mini hidden" id="topLogoutBtn" onclick="logoutUser()">
+      <button type="button" class="top-logout-mini hidden" id="topLogoutBtn" onclick="requestLogout()">
         Đăng xuất
       </button>
     </div>
@@ -299,7 +326,19 @@
       <h1 class="brand-title">Cloud phonemod <span>⚡</span></h1>
     </div>
 
-    <!-- FORM ĐĂNG NHẬP / TẠO TÀI KHOẢN (MỞ KHI BẤM NÚT NHỎ Ở TRÊN) -->
+    <!-- HỘP XÁC NHẬN ĐĂNG XUẤT -->
+    <div class="card hidden" id="logoutConfirmCard">
+      <div class="card-title">⚠️ Xác Nhận Đăng Xuất</div>
+      <p style="font-size: 15px; font-weight: 600; color: #1f2937; text-align: center;">
+        bạn thật sự muốn đăng xuất?
+      </p>
+      <div class="confirm-actions">
+        <button type="button" class="btn btn-danger" onclick="confirmLogout()">đúng</button>
+        <button type="button" class="btn btn-neutral" onclick="goBackToMain()">không</button>
+      </div>
+    </div>
+
+    <!-- FORM ĐĂNG NHẬP / TẠO TÀI KHOẢN -->
     <div class="card hidden" id="authCard">
       <div class="card-title">👤 Tài Khoản Thành Viên</div>
 
@@ -325,7 +364,7 @@
       </div>
 
       <button type="button" class="btn btn-green" id="authSubmitBtn" onclick="handleAuthSubmit()">Đăng nhập</button>
-      <button type="button" class="btn" style="background:#e5e7eb; color:#333;" onclick="goBackToMain()">Quay lại</button>
+      <button type="button" class="btn btn-neutral" onclick="goBackToMain()">Quay lại</button>
     </div>
 
     <!-- MÀN HÌNH CHÍNH -->
@@ -348,7 +387,7 @@
       <div class="card-title">🛠 Chọn Cách Kiếm Key</div>
       <button type="button" class="btn btn-blue" onclick="startMathChallenge()">Cách 1: Giải 17 bài toán</button>
       <button type="button" class="btn btn-green" onclick="startTimeWait()" style="background: linear-gradient(135deg, #f59e0b, #d97706);">Cách 2: Đợi thời gian nhận mã</button>
-      <button type="button" class="btn" style="background:#e5e7eb; color:#333;" onclick="goBackToMain()">Quay lại</button>
+      <button type="button" class="btn btn-neutral" onclick="goBackToMain()">Quay lại</button>
     </div>
 
     <!-- CÁCH 1: GIẢI 17 BÀI TOÁN -->
@@ -378,7 +417,7 @@
       <p style="font-size: 13px; color: #666; text-align: center;">Sao chép key này để mở khóa:</p>
       <div class="key-box" id="generatedKeyDisplay"></div>
       <button type="button" class="btn btn-green" onclick="copyGeneratedKey()">Sao chép Key ngay</button>
-      <button type="button" class="btn" style="background:#e5e7eb; color:#333;" onclick="goBackToMain()">Quay lại trang nhập</button>
+      <button type="button" class="btn btn-neutral" onclick="goBackToMain()">Quay lại trang nhập</button>
     </div>
 
     <!-- MÀN HÌNH LẤY TÀI KHOẢN -->
@@ -387,7 +426,7 @@
       <p id="sessionLimitHint" style="font-size: 13.5px; color: #666; text-align: center;">Xác thực thành công! Sao chép tài khoản của bạn:</p>
       <div class="key-box" id="accountInfoDisplay">Đang tải tài khoản...</div>
       <button type="button" class="btn btn-green" id="copyAccBtn" onclick="copyAndRemoveAccount()">Sao chép & Nhận tài khoản</button>
-      <button type="button" class="btn" style="background:#e5e7eb; color:#333;" onclick="goBackToMain()">Quay lại</button>
+      <button type="button" class="btn btn-neutral" onclick="goBackToMain()">Quay lại</button>
     </div>
 
   </div>
@@ -523,13 +562,19 @@
       const logoutBtn = document.getElementById("topLogoutBtn");
 
       if (activeUser) {
+        const remainingMs = getRemainingCooldownMs();
         topBtn.classList.add("logged-in");
         topBtn.innerText = `👤 ${activeUser}`;
         logoutBtn.classList.remove("hidden");
+        logoutBtn.disabled = remainingMs > 0;
+        logoutBtn.title = remainingMs > 0
+          ? `Đang chờ 1 tiếng (${formatDuration(remainingMs)}) — không thể đăng xuất`
+          : "Đăng xuất";
       } else {
         topBtn.classList.remove("logged-in");
         topBtn.innerText = "👤 Đăng nhập / Đăng ký";
         logoutBtn.classList.add("hidden");
+        logoutBtn.disabled = false;
       }
     }
 
@@ -605,7 +650,24 @@
       }
     }
 
-    function logoutUser() {
+    function requestLogout() {
+      if (!getActiveUser()) return;
+      const remainingMs = getRemainingCooldownMs();
+      if (remainingMs > 0) {
+        alert(`Đang trong thời gian chờ 1 tiếng (còn ${formatDuration(remainingMs)}), không thể đăng xuất lúc này!`);
+        return;
+      }
+      document.querySelectorAll(".card").forEach(c => c.classList.add("hidden"));
+      document.getElementById("logoutConfirmCard").classList.remove("hidden");
+    }
+
+    function confirmLogout() {
+      const remainingMs = getRemainingCooldownMs();
+      if (remainingMs > 0) {
+        alert(`Đang trong thời gian chờ 1 tiếng (còn ${formatDuration(remainingMs)}), không thể đăng xuất lúc này!`);
+        goBackToMain();
+        return;
+      }
       localStorage.removeItem(SESSION_USER_KEY);
       resetPasswordInputs();
       goBackToMain();
@@ -642,6 +704,7 @@
     }
 
     function getRemainingCooldownMs() {
+      if (!getActiveUser()) return 0;
       const lastClaim = parseInt(localStorage.getItem(userKey("last_claim")) || "0", 10);
       if (!lastClaim) return 0;
       const elapsed = Date.now() - lastClaim;
@@ -701,7 +764,7 @@
 
       if (remainingMs > 0) {
         alertBox.className = "stock-status stock-cooldown";
-        alertBox.innerHTML = `⏳ Mỗi lần nhận cách nhau 1 tiếng. Vui lòng đợi <b>${formatDuration(remainingMs)}</b> để nhận tiếp.<br><small>Kho còn: <b>${currentStock.length}</b> | Đã nhận hôm nay: <b>${dailyCount}/${DAILY_MAX}</b></small>`;
+        alertBox.innerHTML = `⏳ Mỗi lần nhận cách nhau 1 tiếng. Vui lòng đợi <b>${formatDuration(remainingMs)}</b> để nhận tiếp (đang chờ 1h không thể đăng xuất).<br><small>Kho còn: <b>${currentStock.length}</b> | Đã nhận hôm nay: <b>${dailyCount}/${DAILY_MAX}</b></small>`;
         verifyBtn.disabled = true;
         verifyBtn.style.background = "#9ca3af";
         getBtn.disabled = true;
@@ -723,6 +786,7 @@
       goBackToMain();
 
       setInterval(() => {
+        updateTopAuthBar();
         if (getActiveUser() && !document.getElementById("mainCard").classList.contains("hidden")) {
           checkStockStatus();
         }
