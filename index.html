@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cloud house - Stock System</title>
+  <title>Cloud phonemod - Stock System</title>
   <style>
     :root {
       --bg-color: #fcfbf7;
@@ -80,12 +80,19 @@
       font-weight: 600;
       font-size: 14px;
       text-align: center;
+      line-height: 1.5;
     }
 
     .stock-available {
       background-color: #d1fae5;
       color: #065f46;
       border: 1px solid #10b981;
+    }
+
+    .stock-cooldown {
+      background-color: #fef3c7;
+      color: #92400e;
+      border: 1px solid #f59e0b;
     }
 
     .stock-empty {
@@ -120,7 +127,12 @@
       transition: opacity 0.2s;
     }
 
-    .btn:active {
+    .btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.75;
+    }
+
+    .btn:active:not(:disabled) {
       transform: scale(0.98);
     }
 
@@ -171,10 +183,9 @@
     <div class="card" id="mainCard">
       <div class="card-title">🔑 Xác Thực Key & Kho Tài Khoản</div>
       
-      <!-- Thông báo tình trạng kho stock -->
       <div id="stockAlertBox" class="stock-status stock-available">Đang tải trạng thái kho...</div>
 
-      <p style="font-size: 13.5px; color: #666; text-align: center;">Nhập key của bạn để mở khóa thông tin tài khoản.</p>
+      <p style="font-size: 13.5px; color: #666; text-align: center;">Tối đa 5 tài khoản/ngày, mỗi lần nhận cách nhau 1 tiếng.</p>
       
       <input type="text" id="keyInput" class="input-box" placeholder="Nhập key của bạn vào đây...">
       
@@ -224,15 +235,20 @@
     <!-- MÀN HÌNH LẤY TÀI KHOẢN -->
     <div class="card hidden" id="accountCard">
       <div class="card-title">🎉 Thông Tin Tài Khoản</div>
-      <p style="font-size: 13.5px; color: #666; text-align: center;">Xác thực thành công! Hãy sao chép tài khoản của bạn:</p>
+      <p id="sessionLimitHint" style="font-size: 13.5px; color: #666; text-align: center;">Xác thực thành công! Sao chép tài khoản của bạn:</p>
       <div class="key-box" id="accountInfoDisplay">Đang tải tài khoản...</div>
-      <button class="btn btn-green" onclick="copyAndRemoveAccount()">Sao chép & Nhận tài khoản tiếp theo</button>
+      <button class="btn btn-green" id="copyAccBtn" onclick="copyAndRemoveAccount()">Sao chép & Nhận tài khoản</button>
+      <button class="btn" style="background:#e5e7eb; color:#333;" onclick="goBackToMain()">Quay lại</button>
     </div>
 
   </div>
 
   <script>
-    // Trọn gói toàn bộ danh sách tài khoản (6 tài khoản mới + toàn bộ tài khoản cũ)
+    const STORAGE_KEY = "accounts_stock_hourly5_v1";
+    const LAST_CLAIM_KEY = "last_claim_timestamp";
+    const DAILY_MAX = 5;
+    const COOLDOWN_MS = 60 * 60 * 1000; // 1 tiếng (60 phút)
+
     const initialAccounts = [
       "Tk: xmlbdzymlh@fldubai.com\nMk: Password123!",
       "Tk: e79l3b2y5v@fldubai.com\nMk: Password123!",
@@ -304,15 +320,14 @@
     ];
 
     function getStockList() {
-      let storedStock = localStorage.getItem("accounts_stock_fixed_v8");
+      const storedStock = localStorage.getItem(STORAGE_KEY);
       if (!storedStock) {
-        localStorage.setItem("accounts_stock_fixed_v8", JSON.stringify(initialAccounts));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(initialAccounts));
         return [...initialAccounts];
       }
       return JSON.parse(storedStock);
     }
 
-    // Định dạng Key tự động theo ngày tháng năm hiện tại
     const today = new Date();
     const dd = String(today.getDate()).padStart(2, '0');
     const mm = String(today.getMonth() + 1).padStart(2, '0');
@@ -320,38 +335,48 @@
     const dateStr = dd + mm + yyyy;
     const CORRECT_KEY = "TUANANH_" + dateStr + "5550363438";
 
-    // Kiểm tra giới hạn tối đa 3 tài khoản / ngày
     function checkDailyLimit() {
       const lastDate = localStorage.getItem("limit_date");
-      const currentDate = dateStr;
-
-      if (lastDate !== currentDate) {
-        localStorage.setItem("limit_date", currentDate);
+      if (lastDate !== dateStr) {
+        localStorage.setItem("limit_date", dateStr);
         localStorage.setItem("daily_count", "0");
       }
-
-      const count = parseInt(localStorage.getItem("daily_count") || "0");
-      return count;
+      return parseInt(localStorage.getItem("daily_count") || "0");
     }
 
-    // Kiểm tra trạng thái kho stock
+    // Trả về số mili-giây còn lại của thời gian chờ 1 tiếng (0 nếu đã có thể nhận)
+    function getRemainingCooldownMs() {
+      const lastClaim = parseInt(localStorage.getItem(LAST_CLAIM_KEY) || "0", 10);
+      if (!lastClaim) return 0;
+      const elapsed = Date.now() - lastClaim;
+      return elapsed < COOLDOWN_MS ? COOLDOWN_MS - elapsed : 0;
+    }
+
+    function formatDuration(ms) {
+      const totalSeconds = Math.ceil(ms / 1000);
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+      return [hours, minutes, seconds].map(v => String(v).padStart(2, '0')).join(":");
+    }
+
     function checkStockStatus() {
       const currentStock = getStockList();
       const alertBox = document.getElementById("stockAlertBox");
       const verifyBtn = document.getElementById("verifyBtn");
       const getBtn = document.getElementById("getBtn");
       const keyInput = document.getElementById("keyInput");
-
       const dailyCount = checkDailyLimit();
+      const remainingMs = getRemainingCooldownMs();
 
-      if (dailyCount >= 3) {
+      if (dailyCount >= DAILY_MAX) {
         alertBox.className = "stock-status stock-empty";
-        alertBox.innerHTML = `⚠️ Bạn đã đạt giới hạn nhận tối đa <b>3/3</b> tài khoản hôm nay.`;
+        alertBox.innerHTML = `⚠️ Bạn đã đạt giới hạn nhận tối đa <b>${DAILY_MAX}/${DAILY_MAX}</b> tài khoản hôm nay.`;
         verifyBtn.disabled = true;
         verifyBtn.style.background = "#9ca3af";
         getBtn.disabled = true;
         keyInput.disabled = true;
-        keyInput.placeholder = "Đã hết lượt nhận trong ngày...";
+        keyInput.placeholder = "Đã hết lượt nhận hôm nay...";
         return;
       }
 
@@ -362,18 +387,36 @@
         verifyBtn.style.background = "#9ca3af";
         getBtn.disabled = true;
         keyInput.disabled = true;
-      } else {
-        alertBox.className = "stock-status stock-available";
-        alertBox.innerHTML = `✅ Kho có sẵn: <b>${currentStock.length}</b> | Đã nhận: <b>${dailyCount}/3</b> tài khoản.`;
-        verifyBtn.disabled = false;
-        verifyBtn.style.background = "";
-        getBtn.disabled = false;
-        keyInput.disabled = false;
+        return;
       }
+
+      if (remainingMs > 0) {
+        alertBox.className = "stock-status stock-cooldown";
+        alertBox.innerHTML = `⏳ Mỗi lần nhận cách nhau 1 tiếng. Vui lòng đợi <b>${formatDuration(remainingMs)}</b> để nhận tiếp.<br><small>Kho còn: <b>${currentStock.length}</b> | Đã nhận hôm nay: <b>${dailyCount}/${DAILY_MAX}</b></small>`;
+        verifyBtn.disabled = true;
+        verifyBtn.style.background = "#9ca3af";
+        getBtn.disabled = true;
+        keyInput.disabled = true;
+        keyInput.placeholder = "Đang trong thời gian chờ 1 tiếng...";
+        return;
+      }
+
+      alertBox.className = "stock-status stock-available";
+      alertBox.innerHTML = `✅ Kho có sẵn: <b>${currentStock.length}</b> | Đã nhận: <b>${dailyCount}/${DAILY_MAX}</b> lượt hôm nay (Sẵn sàng nhận).`;
+      verifyBtn.disabled = false;
+      verifyBtn.style.background = "";
+      getBtn.disabled = false;
+      keyInput.disabled = false;
+      keyInput.placeholder = "Nhập key của bạn vào đây...";
     }
 
     window.onload = function() {
       checkStockStatus();
+      setInterval(() => {
+        if (!document.getElementById("mainCard").classList.contains("hidden")) {
+          checkStockStatus();
+        }
+      }, 1000);
     };
 
     let mathCount = 1;
@@ -381,8 +424,14 @@
     let currentRandomCode = "";
 
     function verifyKey() {
-      if (checkDailyLimit() >= 3) {
-        alert("Bạn đã hết lượt nhận tối đa 3 tài khoản trong ngày hôm nay!");
+      if (checkDailyLimit() >= DAILY_MAX) {
+        alert(`Bạn đã nhận đủ ${DAILY_MAX} tài khoản trong ngày hôm nay!`);
+        return;
+      }
+
+      const remainingMs = getRemainingCooldownMs();
+      if (remainingMs > 0) {
+        alert(`Bạn cần đợi thêm ${formatDuration(remainingMs)} (1 tiếng giữa mỗi lần nhận) mới có thể nhận tiếp!`);
         return;
       }
 
@@ -394,6 +443,9 @@
 
       const inputVal = document.getElementById("keyInput").value.trim();
       if (inputVal === CORRECT_KEY) {
+        const dailyCount = checkDailyLimit();
+        document.getElementById("sessionLimitHint").innerText =
+          `Xác thực thành công! Đã nhận ${dailyCount}/${DAILY_MAX} lượt hôm nay — bấm nút để nhận tài khoản:`;
         document.getElementById("accountInfoDisplay").innerText = currentStock[0];
         document.getElementById("mainCard").classList.add("hidden");
         document.getElementById("accountCard").classList.remove("hidden");
@@ -403,7 +455,7 @@
     }
 
     function showGetKeyEvent() {
-      if (checkDailyLimit() >= 3) return;
+      if (checkDailyLimit() >= DAILY_MAX || getRemainingCooldownMs() > 0) return;
       const currentStock = getStockList();
       if (currentStock.length === 0) return;
       document.getElementById("mainCard").classList.add("hidden");
@@ -416,7 +468,6 @@
       checkStockStatus();
     }
 
-    // Cách 1: Giải 17 bài toán
     function startMathChallenge() {
       document.getElementById("getMethodCard").classList.add("hidden");
       document.getElementById("mathCard").classList.remove("hidden");
@@ -461,7 +512,6 @@
       }
     }
 
-    // Cách 2: Đợi 80 giây
     function startTimeWait() {
       document.getElementById("getMethodCard").classList.add("hidden");
       document.getElementById("waitCard").classList.remove("hidden");
@@ -501,23 +551,41 @@
       document.getElementById("keyInput").value = CORRECT_KEY;
     }
 
-    // Sao chép xong: Xóa tài khoản khỏi kho và tăng bộ đếm lên 1
+    // Sao chép xong: xóa tài khoản khỏi kho, tăng lượt trong ngày (+1) và khóa nhận tiếp trong 1 tiếng
     function copyAndRemoveAccount() {
-      let currentStock = getStockList();
-      if (currentStock.length > 0) {
-        const textToCopy = currentStock[0];
-        navigator.clipboard.writeText(textToCopy);
-
-        currentStock.shift();
-        localStorage.setItem("accounts_stock_fixed_v8", JSON.stringify(currentStock));
-
-        let dailyCount = checkDailyLimit();
-        dailyCount++;
-        localStorage.setItem("daily_count", dailyCount.toString());
-
-        alert(`Đã sao chép tài khoản thành công! Bạn đã nhận ${dailyCount}/3 tài khoản hôm nay.`);
+      let dailyCount = checkDailyLimit();
+      if (dailyCount >= DAILY_MAX) {
+        alert(`Bạn đã đạt giới hạn ${DAILY_MAX}/${DAILY_MAX} tài khoản hôm nay!`);
+        goBackToMain();
+        return;
       }
-      location.reload();
+
+      const remainingMs = getRemainingCooldownMs();
+      if (remainingMs > 0) {
+        alert(`Vui lòng đợi thêm ${formatDuration(remainingMs)} mới được nhận tiếp!`);
+        goBackToMain();
+        return;
+      }
+
+      let currentStock = getStockList();
+      if (currentStock.length === 0) {
+        alert("Kho đã hết tài khoản!");
+        goBackToMain();
+        return;
+      }
+
+      const textToCopy = currentStock[0];
+      navigator.clipboard.writeText(textToCopy);
+
+      currentStock.shift();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(currentStock));
+
+      dailyCount++;
+      localStorage.setItem("daily_count", dailyCount.toString());
+      localStorage.setItem(LAST_CLAIM_KEY, Date.now().toString());
+
+      alert(`Đã sao chép tài khoản thành công! (${dailyCount}/${DAILY_MAX} lượt hôm nay). Bạn cần đợi 1 tiếng để nhận tài khoản tiếp theo.`);
+      goBackToMain();
     }
   </script>
 </body>
