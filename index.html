@@ -565,6 +565,7 @@
         const remainingMs = getRemainingCooldownMs();
         topBtn.classList.add("logged-in");
         topBtn.innerText = `👤 ${activeUser}`;
+        topBtn.title = "Bấm để mở Đăng nhập / Tạo tài khoản";
         logoutBtn.classList.remove("hidden");
         logoutBtn.disabled = remainingMs > 0;
         logoutBtn.title = remainingMs > 0
@@ -573,12 +574,18 @@
       } else {
         topBtn.classList.remove("logged-in");
         topBtn.innerText = "👤 Đăng nhập / Đăng ký";
+        topBtn.title = "Đăng nhập hoặc tạo tài khoản";
         logoutBtn.classList.add("hidden");
         logoutBtn.disabled = false;
       }
     }
 
     function openAuthCard() {
+      const remainingMs = getRemainingCooldownMs();
+      if (remainingMs > 0) {
+        alert(`Đang trong thời gian chờ 1 tiếng (còn ${formatDuration(remainingMs)}), không thể chuyển/tạo tài khoản lúc này!`);
+        return;
+      }
       resetPasswordInputs();
       document.querySelectorAll(".card").forEach(c => c.classList.add("hidden"));
       document.getElementById("authCard").classList.remove("hidden");
